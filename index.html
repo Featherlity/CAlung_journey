@@ -1,0 +1,1496 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="เกมจำลองเส้นทางชีวิตผู้ป่วยมะเร็งระยะท้าย สำหรับให้ความรู้เรื่องการดูแลแบบประคับประคอง">
+<style>
+/* พื้นฐานที่ claude.ai ใส่ให้อัตโนมัติ ต้องใส่เองเมื่อวางบนเว็บอื่น */
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>วางแผนการเป็นมะเร็งระยะท้าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Trirong:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column like a patient's notebook; sticky status strip on top; peach + mint pastel */
+:root{
+  --bg:#E9F1F6; --surface:#F8FBFD; --ink:#2F3840; --muted:#66737C; --line:#D2DEE6;
+  --peach:#D9784F; --peach-ink:#B25A35; --peach-soft:#FCDCCB;
+  --mint:#6DBF9F; --mint-ink:#2F7D61; --mint-soft:#D7F0E5;
+  --rose:#C55A63; --rose-soft:#F8DADC; --glass:#DCEFF0;
+  --font-story:'Trirong', 'Noto Serif Thai', Georgia, serif;
+  --font-ui:'Trirong', 'Noto Serif Thai', Georgia, serif;
+}
+/* ใช้ธีมสว่างธีมเดียวเสมอ ไม่ว่าเครื่องผู้เล่นจะตั้งโหมดมืดไว้หรือไม่ */
+:root{color-scheme:light}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:16.5px;line-height:1.75}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 72px}
+h1,h2{font-family:var(--font-story);font-weight:600;text-wrap:balance;margin:0;line-height:1.35}
+h1{font-size:clamp(1.9rem,7vw,2.5rem)}
+h2{font-size:1.45rem}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--peach);outline-offset:2px}
+
+/* HUD */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px}
+.hud-in{max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:auto 1fr 1fr;gap:14px;align-items:center}
+.when{display:grid;font-family:var(--font-story);font-weight:600;font-size:.98rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.when{justify-items:center;line-height:1.2}
+.when small{font-weight:500;font-size:.72rem;color:var(--muted)}
+.when span{font-size:1.25rem;color:var(--mint-ink)}
+.when span.pop{animation:pop .6s ease;display:inline-block}
+.sh{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.sh .titles{display:grid;gap:2px;min-width:0}
+.bigwhen{display:grid;justify-items:end;line-height:1.1;text-align:right;font-family:var(--font-story);font-variant-numeric:tabular-nums}
+.bigwhen b{font-size:clamp(1.6rem,6.5vw,2.2rem);font-weight:600;color:var(--peach-ink);white-space:nowrap}
+.bigwhen small{font-size:.85rem;color:var(--muted)}
+@keyframes pop{40%{transform:scale(1.18)}}
+.meter{display:grid;gap:3px;min-width:0}
+.meter span{font-size:.9rem;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline;font-variant-numeric:tabular-nums}
+.meter em{font-style:normal;font-weight:600;font-size:1.05rem;color:var(--ink)}
+.meter.hit .bar{animation:hit .8s ease}
+.meter.hit em{animation:hitText .8s ease}
+@keyframes hit{0%,100%{box-shadow:0 0 0 0 transparent}25%,60%{box-shadow:0 0 0 3px var(--rose);background:var(--rose-soft)}}
+@keyframes hitText{0%,100%{color:var(--ink)}25%,60%{color:var(--rose)}}
+.meter.gain .bar{animation:gain .8s ease}
+.meter.gain em{animation:gainText .8s ease}
+@keyframes gain{0%,100%{box-shadow:0 0 0 0 transparent}25%,60%{box-shadow:0 0 0 3px var(--mint);background:var(--mint-soft)}}
+@keyframes gainText{0%,100%{color:var(--ink)}25%,60%{color:var(--mint-ink)}}
+.bar{height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--mint);transition:width .6s ease}
+.bar.q i{background:var(--peach)}
+.toasts{position:absolute;left:0;right:0;top:100%;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;pointer-events:none;padding-top:6px}
+.toast,.chip{font-size:.76rem;padding:1px 9px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+.toast{animation:toast 2.4s ease forwards}
+.up{color:var(--mint-ink)} .down{color:var(--rose)}
+@keyframes toast{0%{opacity:0;transform:translateY(-4px)}12%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+
+/* Scene */
+.scene{display:grid;gap:18px;padding-top:22px;animation:rise .45s ease}
+@keyframes rise{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chapter{font-size:.78rem;letter-spacing:.06em;color:var(--muted)}
+.story{display:grid;gap:12px;font-size:1.04rem}
+.quote{font-family:var(--font-story);font-size:1.02rem;border-left:3px solid var(--peach);padding:2px 0 2px 14px;display:grid;gap:2px}
+.quote b{font-family:var(--font-ui);font-weight:500;font-size:.74rem;color:var(--muted);letter-spacing:.04em}
+.note{font-size:.88rem;color:var(--muted)}
+.info{background:var(--mint-soft);border-radius:12px;padding:14px 16px;display:grid;gap:10px;font-size:.94rem}
+.info h3{margin:0;font-size:.8rem;letter-spacing:.05em;font-weight:600;color:var(--mint-ink)}
+.info details summary{cursor:pointer;color:var(--mint-ink);font-size:.86rem;font-weight:500}
+.info details ul{margin:8px 0 0;padding-left:1.1em;display:grid;gap:4px;font-size:.88rem}
+.people{display:grid;gap:4px}
+.people svg{width:min(220px,100%);height:auto;display:block}
+.people span{font-size:.86rem}
+.people .on{fill:var(--mint-ink)} .people .off{fill:var(--line)}
+.choices{display:grid;gap:10px}
+.choice{display:grid;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;cursor:pointer;transition:border-color .2s,background .2s}
+.choice:hover{border-color:var(--peach)}
+.choice strong{font-weight:600}
+.choice small{color:var(--muted);font-size:.85rem}
+.choice[disabled]{cursor:default;opacity:.45}
+.choice.picked{opacity:1;border-color:var(--peach);background:var(--peach-soft)}
+.fb{border:1px dashed var(--peach);border-radius:12px;padding:14px 16px;display:grid;gap:10px}
+.go{justify-self:start;background:var(--peach-soft);color:var(--ink);border:1px solid var(--peach);border-radius:99px;padding:9px 22px;font-weight:600;cursor:pointer}
+.go.ghost{background:none;border-color:var(--line);color:var(--muted);font-weight:500}
+.field{display:grid;gap:6px}
+input[type=text]{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+
+/* Glossary terms */
+.term{border-bottom:1.5px dotted var(--mint-ink);cursor:help}
+.tip{position:fixed;z-index:20;background:var(--surface);border:1px solid var(--mint);border-radius:12px;padding:10px 36px 12px 14px;font-size:.92rem;line-height:1.6;box-shadow:0 6px 20px rgb(0 0 0 / .14);display:grid;gap:2px;box-sizing:border-box}
+.tip-x{position:absolute;top:4px;right:4px;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:none;color:var(--muted);font-size:1.25rem;line-height:1;cursor:pointer}
+.tip-x:hover{background:var(--mint-soft);color:var(--ink)}
+.tip b{color:var(--mint-ink)}
+
+/* Feed */
+.feed{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.feed li{display:grid;grid-template-columns:4.2em 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);animation:rise .4s ease}
+.feed time{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.feed .txt{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.feed li.life time::before,.feed li.med time::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--mint)}
+.feed li.med time::before{background:var(--peach)}
+.slide{margin:0}
+.slide img{width:100%;border-radius:12px}
+
+/* Start + form */
+.start{display:grid;gap:22px;padding-top:28px}
+.start .lede{font-family:var(--font-story);font-size:1.12rem;display:grid;gap:6px}
+.warn{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+form{display:grid;gap:20px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+legend{font-weight:600;padding:0;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips label{padding:7px 14px;border:1px solid var(--line);border-radius:99px;background:var(--surface);cursor:pointer;font-size:.94rem}
+.chips input:checked+label{background:var(--peach-soft);border-color:var(--peach);font-weight:600}
+.chips input:focus-visible+label{outline:2px solid var(--peach);outline-offset:2px}
+.privacy{font-size:.82rem;color:var(--muted)}
+.goal{font-family:var(--font-story);font-size:1.02rem;background:var(--mint-soft);border-radius:12px;padding:12px 16px}
+.goal b{color:var(--mint-ink)}
+.care{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* Illustrations */
+.ill{width:100%;height:auto;max-width:100%;color:var(--ink);display:block}
+.ill .s{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ill .bgf{fill:var(--bg)}
+.ill .sf{fill:var(--surface)}
+.ill .soft{fill:var(--peach-soft)}
+.ill .sagef{fill:var(--mint-soft)}
+.ill .glass{fill:var(--glass)}
+.ill .light{fill:var(--peach);opacity:.14}
+.ill .tube{fill:none;stroke:var(--mint-ink);stroke-width:2;stroke-linecap:round}
+.ill .mon{fill:none;stroke:var(--mint-ink);stroke-width:1.6}
+.ill .acc{fill:none;stroke:var(--peach);stroke-width:2;stroke-linecap:round}
+.ill .sand{stroke:var(--peach);stroke-width:2;stroke-dasharray:3 5;animation:sand 1.4s linear infinite}
+.ill .num{fill:var(--peach-ink);font:600 22px var(--font-ui)}
+.ill .dot{fill:var(--line)}
+@keyframes sand{to{stroke-dashoffset:-16}}
+figure{margin:0}
+
+/* Summary */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px}
+.stat span{font-size:.78rem;color:var(--muted)}
+.stat b{font-family:var(--font-story);font-size:1.3rem;font-variant-numeric:tabular-nums;font-weight:600}
+.split{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line)}
+.split i{background:var(--mint)} .split em{background:var(--rose)}
+.legend{display:flex;gap:16px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--mint)}
+.legend span.h::before{background:var(--rose)}
+.section{display:grid;gap:10px}
+.section h3{margin:0;font-size:.82rem;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.alts{display:grid;gap:10px}
+.alt{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;background:var(--surface)}
+.alt b{font-weight:600}
+.alt p{font-size:.92rem;color:var(--muted)}
+.mems{background:var(--mint-soft);border-radius:12px;padding:16px 18px}
+.mems ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mems li{display:grid;grid-template-columns:5.5em 1fr;gap:10px}
+.mems time{color:var(--mint-ink);font-size:.85rem;font-variant-numeric:tabular-nums}
+.closing{font-family:var(--font-story);font-size:1.08rem;border-left:3px solid var(--peach);padding-left:14px}
+.shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.shots figure{display:grid;gap:8px;min-width:0}
+.shots img{width:100%;aspect-ratio:4/5;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.shots .go{justify-self:stretch;padding-inline:8px;font-size:.88rem}
+.people b{font-weight:600}
+.back{justify-self:start;background:none;border:0;padding:4px 0;color:var(--muted);font:inherit;font-size:.9rem;cursor:pointer}
+.back:hover{color:var(--ink)}
+.feedbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.mute{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:15;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 10px rgb(0 0 0 / .1)}
+.mute[aria-pressed="true"]{color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="hud" id="hud" hidden>
+  <div class="hud-in">
+    <div class="when"><small>ความทรงจำ</small><span id="mem">0</span></div>
+    <div class="meter" id="mp"><span>แรงกาย <em id="vp"></em></span><div class="bar"><i id="bp"></i></div></div>
+    <div class="meter" id="mq"><span>คุณภาพชีวิต <em id="vq"></em></span><div class="bar q"><i id="bq"></i></div></div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</header>
+<main class="wrap" id="app"></main>
+<div class="tip" id="tip" role="status" hidden></div>
+<button class="mute" id="mute" type="button"></button>
+
+<script>
+/* ============================================================
+   วางแผนการเป็นมะเร็งระยะท้าย — prototype v4
+   (1) st     = ค่าสถานะของผู้เล่นหนึ่งคน
+   (2) S      = ฉากที่ต้องตัดสินใจ
+   (3) FEED   = ฟีดชีวิตอัตโนมัติระหว่างฉาก (ไม่ต้องตัดสินใจ)
+   (4) engine = render / route / runFeed
+   ไม่มีการเก็บหรือส่งข้อมูลที่ผู้เล่นกรอก ทุกอย่างอยู่ในตัวแปร st
+   ============================================================ */
+
+const app = document.getElementById('app');
+// ตัวสุ่มที่เก็บสถานะไว้ใน st (mulberry32) ย้อนกลับไปเลือกใหม่แล้วโชคจะไม่ถูกสุ่มใหม่
+function R(){
+  if (!st) return Math.random();
+  let a = (st.rs + 0x6D2B79F5) | 0; st.rs = a;
+  let t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const chance = p => R() < p;
+const jitter = v => v * (0.7 + R() * 0.6);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pick = arr => arr[Math.floor(R() * arr.length)];
+// ป้องกัน XSS: ข้อความที่ผู้เล่นพิมพ์ต้อง escape ก่อนแทรกลง HTML เสมอ
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ปรับสมดุลตัวเลขของเกมที่นี่ที่เดียว */
+/* physDecline: ตัวคูณแรงกายเฉพาะช่วงโรคลุกลาม ให้ช่วงท้ายทรุดลงชัดกว่าช่วงอื่น */
+/* qolGainDecline / qolWearDecline: ช่วงลุกลาม คุณภาพชีวิตขึ้นยากกว่าปกติ และค่อยๆ ลดเองทีละน้อยทุกบรรทัดฟีด (ทีมประคับประคองลดครึ่ง) */
+const TUNE = {phys:0.55, physDecline:0.75, qolGain:0.6, qolGainDecline:0.3, qolWearDecline:-4, qolPerPhys:0.2, feedMs:1300};
+
+/* ---------------- คำศัพท์: เขียน [[คำ]] หรือ [[คำที่แสดง|คำในพจนานุกรม]] ---------------- */
+const GLOSS = {
+  'เจาะชิ้นเนื้อ':'ใช้เข็มหรือกล้องเก็บเนื้อเยื่อชิ้นเล็กๆ ไปตรวจ (biopsy)',
+  'ยีนกลายพันธุ์':'ความผิดปกติในยีนของเซลล์มะเร็ง บางชนิดมียาที่ออกฤทธิ์ตรงจุด เช่น EGFR',
+  'ยามุ่งเป้า':'ยาที่ออกฤทธิ์ตรงกับยีนที่ผิดปกติในเซลล์มะเร็ง ส่วนใหญ่เป็นยากิน (targeted therapy)',
+  'ภูมิคุ้มกันบำบัด':'ยาที่ช่วยให้ภูมิคุ้มกันของร่างกายจดจำและโจมตีเซลล์มะเร็ง (immunotherapy)',
+  'เคมีบำบัด':'ยาที่ทำลายเซลล์ที่แบ่งตัวเร็ว รวมถึงเซลล์มะเร็ง ให้ทางหลอดเลือดเป็นรอบๆ (chemotherapy)',
+  'ค่ากลาง':'ครึ่งหนึ่งของผู้ป่วยอยู่ได้นานกว่าตัวเลขนี้ อีกครึ่งสั้นกว่า (median)',
+  'ทีมดูแลแบบประคับประคอง':'แพทย์ พยาบาล และสหวิชาชีพที่ดูแลความทุกข์ทั้งกายและใจ ทำควบคู่กับการรักษาโรคได้ (palliative care)',
+  'หนังสือแสดงเจตนา':'เอกสารบอกความต้องการการรักษาในวาระสุดท้าย ทำได้ตามมาตรา 12 พ.ร.บ.สุขภาพแห่งชาติ 2550 (living will)',
+  'มอร์ฟีน':'ยาแก้ปวดและบรรเทาอาการเหนื่อยหอบ เมื่อใช้ตามแพทย์สั่งในผู้ป่วยมะเร็ง ปลอดภัยและแทบไม่ทำให้ติดยา',
+  'การเชื่อมเยื่อหุ้มปอด':'ใส่ยาเข้าช่องเยื่อหุ้มปอดให้อักเสบจนเยื่อสองชั้นติดกัน น้ำจึงไม่กลับมาขัง (pleurodesis)',
+  'สายระบายค้างไว้':'สายเล็กๆ คาไว้ในช่องอก ใช้ปล่อยน้ำออกได้โดยไม่ต้องเจาะใหม่ (indwelling pleural catheter)',
+  'ฉายแสง':'ใช้รังสีทำลายเซลล์มะเร็งเฉพาะบริเวณ (radiotherapy)',
+  'ท่อช่วยหายใจ':'ท่อที่ใส่ผ่านปากลงหลอดลม ต่อกับเครื่องช่วยหายใจ ผู้ป่วยพูดไม่ได้ขณะใส่ท่อ',
+  'ไอซียู':'หอผู้ป่วยวิกฤต (ICU) ญาติเข้าเยี่ยมได้เป็นช่วงเวลา',
+  'ผู้แทนตัดสินใจ':'คนที่คุณมอบหมายให้ตัดสินใจเรื่องการรักษาแทน เมื่อคุณตัดสินใจเองไม่ได้แล้ว'
+};
+
+const CARER = {partner:'คู่ชีวิต', child:'ลูก', family:'คนในครอบครัว', alone:'เพื่อนสนิท'};
+const WORK  = {job:'กลับไปทำงาน', biz:'กลับไปเปิดร้าน', retired:'กลับไปใช้ชีวิตแบบเดิม', family:'กลับไปดูแลคนในบ้าน', study:'กลับไปเรียน', other:'กลับไปใช้ชีวิตแบบเดิม'};
+const WORK_LINE = {job:'กลับไปทำงาน เพื่อนร่วมงานบอกว่าดูดีขึ้นมาก', biz:'กลับไปเปิดร้าน ลูกค้าประจำดีใจที่เห็นหน้า', retired:'กลับไปรดน้ำต้นไม้และเดินตลาดทุกเช้า',
+                   family:'กลับไปดูแลคนในบ้านได้อีกครั้ง', study:'กลับไปเรียน ตามเพื่อนทันในไม่กี่สัปดาห์', other:'กลับไปใช้ชีวิตแบบเดิมได้อีกครั้ง'};
+const AGE_TEXT = {u40:'{ชื่อ} ชีวิตกำลังเริ่มลงตัว งานยุ่ง แต่มีแผนอีกมากที่อยากทำ', '40':'{ชื่อ} อยู่ในช่วงที่หลายคนพึ่งพา ทั้งที่ทำงานและที่บ้าน',
+                  '60':'{ชื่อ} เพิ่งเริ่มมีเวลาให้ตัวเองมากขึ้น', '75':'{ชื่อ} ใช้ชีวิตเรียบง่าย มี{ผู้ดูแล}คอยแวะมาหา'};
+const LIFE_TEXT = {job:'ทุกเช้าออกจากบ้านไปทำงาน กลับมาก็เหนื่อยจนหลับ', biz:'ร้านเล็กๆ ของ {ชื่อ} เปิดทุกวัน แทบไม่มีวันหยุดจริงๆ',
+                   retired:'หลังเกษียณ วันๆ หมดไปกับต้นไม้และเพื่อนเก่า', family:'ทุกคนในบ้านพึ่ง {ชื่อ} ตั้งแต่เช้าจรดค่ำ',
+                   study:'ตารางเรียนแน่น แต่ยังมีเวลาให้ความฝัน', other:'แต่ละวันของ {ชื่อ} หมดไปกับ{อาชีพ}'};
+const TH_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+let st = null;
+
+function newState(p){
+  const now = new Date();
+  const cal0 = now.getFullYear() * 12 + now.getMonth() - 4;   // ชีวิตก่อนป่วยเริ่ม 4 เดือนก่อนวินิจฉัย
+  return {
+    name:p.name || 'คุณ', sex:p.sex, age:p.age, life:p.life, lifeOther:p.lifeOther, carer:p.carer, carerOther:p.carerOther,
+    month:0, phys:p.age === '75' ? 65 : 75, qol:70, hosp:0, diagnosed:false, preCal:cal0, dxCal:cal0 + 4,
+    rs:Math.floor(Math.random() * 2147483647),
+    biopsy:false, mutation:null, pdl1:null, pc:false, pcOffers:0, acp:false, acpChoice:null, acpOffers:0,
+    place:null, bucket:false, proxy:null, proxyAsked:false, proxySkipped:false,
+    phase:'pre', lineId:null, lineName:'', lineMonths:0, responded:false, durable:false, pReason:null, rDur:0, declineD:0,
+    tx:[], seList:[], log:[], mem:0, usedLife:new Set(), usedFest:new Set(),
+    ending:null, pending:null, fb:null, feed:null
+  };
+}
+
+const carerRaw = () => st.carer === 'other' ? (st.carerOther || 'คนใกล้ชิด') : CARER[st.carer];
+
+// แทนค่าตัวแปรและคำศัพท์ — ค่าที่ผู้เล่นพิมพ์ถูก escape ที่นี่
+function T(s){
+  return String(s).replaceAll('{ชื่อ}', esc(st.name))
+    .replaceAll('{ผู้ดูแล}', esc(carerRaw()))
+    .replaceAll('{ผู้แทน}', esc(st.proxy || carerRaw()))
+    .replaceAll('{อาชีพ}', esc(st.lifeOther || 'การใช้ชีวิตตามจังหวะของตัวเอง'))
+    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, shown, key) => {
+      const k = key || shown;
+      return GLOSS[k] ? `<span class="term" tabindex="0" role="button" data-k="${k}">${shown}</span>` : shown;
+    });
+}
+const plain = s => String(s).replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, '$1');
+
+function fmtM(m){
+  if (m < 1) return `${Math.max(1, Math.round(m * 4.3))} สัปดาห์`;
+  const t = Math.round(m);
+  if (t < 24) return `${t} เดือน`;
+  const y = Math.floor(t / 12), r = t % 12;
+  return r ? `${y} ปี ${r} เดือน` : `${y} ปี`;
+}
+const whenLabel = m => m < 0.5 ? 'วันวินิจฉัย' : `เดือนที่ ${Math.round(m)}`;
+const curCal = () => st.diagnosed ? st.dxCal + st.month : st.preCal;
+const calLabel = c => { const f = Math.floor(c); return `${TH_MON[((f % 12) + 12) % 12]} ${(Math.floor(f / 12) + 543) % 100}`; };
+
+function log(t, life){ st.log.push({m:st.month, t:plain(t), life:!!life}); }
+
+/* ---------------- ค่าสถานะ ----------------
+   ตัวเลขในฉากคือค่าดิบ chg คูณด้วย TUNE แล้ว clamp
+   แรงกายขึ้นลงเท่าไร คุณภาพชีวิตขยับตาม 20% */
+function chg(d, quiet){
+  const out = [];
+  let dq = 0;
+  if (d.phys){
+    const before = st.phys;
+    const k = st.phase === 'decline' ? TUNE.physDecline : TUNE.phys;
+    st.phys = clamp(st.phys + Math.round(d.phys * k), 3, 90);
+    const real = st.phys - before;
+    if (real) out.push(['แรงกาย', real]);
+    // ช่วงโรคลุกลาม: ร่างกายแย่ลงได้ แต่คุณภาพชีวิตขึ้นกับการดูแล จึงไม่ผูกกับแรงกาย
+    if (st.phase !== 'decline') dq += real * TUNE.qolPerPhys;
+  }
+  if (d.qol){
+    let v = d.qol > 0 ? d.qol * (st.phase === 'decline' ? TUNE.qolGainDecline : TUNE.qolGain) : d.qol;
+    if (v < 0 && st.pc) v = v / 2;          // มีทีมดูแลแบบประคับประคอง ผลเสียลดครึ่ง
+    dq += v;
+  }
+  dq = Math.round(dq);
+  if (dq){
+    const before = st.qol;
+    st.qol = clamp(st.qol + dq, 0, 100);
+    if (st.qol !== before) out.push(['คุณภาพชีวิต', st.qol - before]);
+  }
+  if (d.hosp){ st.hosp += d.hosp; out.push(['นอนโรงพยาบาล', d.hosp, 'วัน']); }
+  if (!quiet) toast(out);
+  return out;
+}
+const chipHTML = ([k, v, unit]) => {
+  const bad = unit ? true : v < 0;
+  return `<span class="chip ${bad ? 'down' : 'up'}">${unit ? `${k} +${v} ${unit}` : `${k} ${v > 0 ? '+' : ''}${v}`}</span>`;
+};
+function toast(items){
+  const box = document.getElementById('toasts');
+  items.forEach(it => {
+    const w = document.createElement('div'); w.innerHTML = chipHTML(it);
+    const el = w.firstChild; el.classList.add('toast'); box.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  });
+}
+// แถบค่าสถานะกะพริบแดงเมื่อค่าลดลง (เทียบกับครั้งก่อนที่วาด)
+let lastHud = null;
+// cls: 'hit' = ลดลง (แดง), 'gain' = เพิ่มขึ้น (เขียว)
+function flash(id, cls = 'hit'){ const m = document.getElementById(id); m.classList.remove('hit', 'gain'); void m.offsetWidth; m.classList.add(cls); }
+function hud(){
+  document.getElementById('hud').hidden = false;
+  const mem = document.getElementById('mem');
+  mem.textContent = st.mem;
+  if (lastHud){
+    if (st.phys !== lastHud.p) flash('mp', st.phys < lastHud.p ? 'hit' : 'gain');
+    if (st.qol !== lastHud.q) flash('mq', st.qol < lastHud.q ? 'hit' : 'gain');
+    if (st.mem > lastHud.m){ mem.classList.remove('pop'); void mem.offsetWidth; mem.classList.add('pop'); }
+  }
+  lastHud = {p:st.phys, q:st.qol, m:st.mem};
+  document.getElementById('bp').style.width = st.phys + '%';
+  document.getElementById('bq').style.width = st.qol + '%';
+  document.getElementById('vp').textContent = Math.round(st.phys);
+  document.getElementById('vq').textContent = Math.round(st.qol);
+}
+
+/* ---------------- เหตุการณ์ชีวิตที่เข้ามาเอง ----------------
+   p: 'well' = เฉพาะช่วงร่างกายยังดี, 'decline' = เฉพาะช่วงโรคลุกลาม, ไม่ระบุ = ได้ทุกช่วง
+   sick: true = ใช้หลังป่วยเท่านั้น, w: เงื่อนไขเพิ่ม */
+const LIFE = [
+  {t:'{ผู้ดูแล}ลางานมาพาไปโรงพยาบาลทุกนัด', d:{qol:3}, p:'well', sick:true},
+  {t:'ญาติต่างจังหวัดโทรมาถามอาการทุกอาทิตย์', d:{qol:3}, sick:true},
+  {t:'{ผู้ดูแล}นอนไม่พอ ดูเหนื่อยกว่าเดิมมาก', d:{qol:-4}, sick:true},
+  {t:'เถียงกับ{ผู้ดูแล}เรื่องการรักษา แล้วคืนดีกันในวันรุ่งขึ้น', d:{qol:-2}, sick:true},
+  {t:'ลูกส่งรูปหลานมาให้ดูทุกเช้า', d:{qol:4}, w:s => s.carer === 'child'},
+  {t:'ฉลองวันครบรอบกับ{ผู้ดูแล}เงียบๆ ที่บ้าน', d:{qol:4}, w:s => s.carer === 'partner'},
+  {t:'เพื่อนบ้านแวะเอากับข้าวมาให้', d:{qol:4}, w:s => s.carer === 'alone'},
+  {t:'ไปงานแต่งของหลาน อยู่ได้ครึ่งงานก็ขอกลับ', d:{qol:4, phys:-2}, p:'well', sick:true},
+  {t:'ไปงานแต่งของหลาน เต้นกับญาติจนดึก', d:{qol:4, phys:-2}, pre:true},
+  {t:'งานวันเกิดเล็กๆ ที่บ้าน ทุกคนพยายามทำตัวปกติ', d:{qol:3}, sick:true},
+  {t:'หัวหน้าให้ทำงานจากที่บ้านได้', d:{qol:3}, w:s => s.life === 'job', p:'well', sick:true},
+  {t:'ใช้วันลาป่วยหมดแล้ว ต้องลาโดยไม่รับเงินเดือน', d:{qol:-4}, w:s => s.life === 'job', sick:true},
+  {t:'ได้โบนัสปลายปี วางแผนพาครอบครัวไปเที่ยว', d:{qol:3, phys:1}, w:s => s.life === 'job', pre:true},
+  {t:'ปิดร้านบ่อยขึ้น ลูกค้าประจำโทรมาถามว่าเป็นอะไร', d:{qol:-2}, w:s => s.life === 'biz', sick:true},
+  {t:'ร้านขายดีจนต้องจ้างคนเพิ่ม', d:{qol:3}, w:s => s.life === 'biz', pre:true},
+  {t:'เพื่อนเกษียณรุ่นเดียวกันชวนไปกินข้าว', d:{qol:3}, w:s => s.life === 'retired', p:'well'},
+  {t:'สอบผ่านวิชาที่ยากที่สุดของเทอม', d:{qol:3}, w:s => s.life === 'study', pre:true},
+  {t:'อาจารย์อนุญาตให้ส่งงานช้า', d:{qol:2}, w:s => s.life === 'study', p:'well', sick:true},
+  {t:'นั่งคิดเรื่องเงินเก็บกับค่าใช้จ่ายในบ้านทั้งคืน', d:{qol:-3, phys:-2}},
+  {t:'บอก{ผู้ดูแล}ว่าเอกสารสำคัญกับบัญชีอยู่ที่ไหน', d:{qol:2}, sick:true},
+  {t:'ไปทำบุญที่วัดใกล้บ้าน รู้สึกใจเบาขึ้น', d:{qol:3, phys:1}, p:'well'},
+  {t:'โทรหาเพื่อนเก่าที่ไม่ได้คุยกันหลายปี ขอโทษเรื่องที่ค้างคาใจ', d:{qol:5}, sick:true, mem:true},
+  {t:'นอนไม่หลับ คิดวนว่าทำไมต้องเป็นเรา', d:{qol:-4}, sick:true},
+  {t:'เริ่มนั่งสมาธิก่อนนอนทุกคืน', d:{qol:2}},
+  {t:'ได้กินร้านโปรดที่ไม่ได้ไปนาน', d:{qol:3}, p:'well'},
+  {t:'ฝนตกทั้งสัปดาห์ ไม่ได้ออกไปไหน', d:{qol:-2}},
+  {t:'ต้นไม้ในกระถางออกดอกแรก', d:{qol:2}},
+  {t:'ดูซีรีส์จบทั้งเรื่องในสามวัน', d:{qol:4, phys:-2}},
+  {t:'ทีมฟุตบอลโปรดชนะ นั่งเชียร์จนดึก', d:{qol:3}, p:'well'},
+  {t:'ติดหวัดจากคนในบ้าน ไอหนักไปหนึ่งสัปดาห์', d:{phys:-2, qol:-2}, p:'well'},
+  {t:'ลื่นในห้องน้ำ ฟกช้ำแต่กระดูกไม่หัก', d:{phys:-5, qol:-2}},
+  {t:'อากาศดี ได้เดินเล่นตอนเช้าทุกวัน', d:{phys:5, qol:2}, p:'well'},
+  {t:'กินข้าวได้มากขึ้น น้ำหนักขึ้นมาหนึ่งกิโล', d:{phys:4, qol:3}, p:'well', sick:true},
+  {t:'ฝุ่นควันหนาทั้งเดือน ไอมากขึ้น', d:{phys:-4, qol:-4}, w:(s, m) => [11, 0, 1, 2].includes(m)},
+  {t:'คนที่ไม่ได้เจอกันนานมาเยี่ยมถึงบ้าน', d:{qol:4}, p:'decline', mem:true},
+  {t:'{ผู้ดูแล}ลาออกจากงานมาดูแลเต็มเวลา', d:{qol:1}, p:'decline'},
+  {t:'ขอให้{ผู้ดูแล}ช่วยจดเรื่องที่อยากฝากไว้', d:{qol:3}, p:'decline', mem:true},
+  {t:'นอนเกือบทั้งวัน ตื่นมาดูทีวีได้ไม่นาน', d:{phys:-4}, p:'decline'},
+  {t:'ใส่บาตรหน้าบ้านจากบนรถเข็น', d:{qol:3}, p:'decline'},
+  {t:'ร้องไห้กับ{ผู้ดูแล}เป็นครั้งแรกตั้งแต่ป่วย แล้วรู้สึกโล่งขึ้น', d:{qol:2}, p:'decline'},
+  {t:'หลานมานอนค้างด้วย อ่านนิทานให้ฟังจนหลับไปทั้งคู่', d:{qol:4}, p:'decline', mem:true},
+  {t:'เพื่อนสมัยเรียนรวมตัววิดีโอคอลมาคุยด้วย หัวเราะกันจนเหนื่อย', d:{qol:4}, p:'decline', mem:true},
+  {t:'ได้กินอาหารจานโปรดอีกครั้ง แม้จะแค่สองสามคำ', d:{qol:3}, p:'decline', mem:true},
+  {t:'ฟังเพลงเก่าที่ชอบ ร้องตามได้บางท่อน', d:{qol:3}, p:'decline'},
+  {t:'พระมาเยี่ยมและให้พรที่บ้าน', d:{qol:3}, p:'decline'},
+  {t:'{ผู้ดูแล}เข็นรถพาไปนั่งรับลมเย็นที่สวนใกล้บ้าน', d:{qol:4}, p:'decline', mem:true, w:s => s.pc}
+];
+const FEST = {3:'สงกรานต์ ลูกหลานมารดน้ำขอพรที่บ้าน', 10:'คืนลอยกระทง {ผู้ดูแล}พาไปนั่งดูกระทงริมน้ำ', 11:'ปีใหม่ ทุกคนมากินข้าวพร้อมหน้ากันที่บ้าน',
+              1:'ตรุษจีน ไปกินข้าวรวมญาติ', 9:'ออกพรรษา ได้ไปตักบาตรเทโว'};
+
+// สุ่มเหตุการณ์ชีวิตหนึ่งเรื่อง ตามช่วงชีวิตและเดือนในปฏิทิน
+function lifeLine(phase, cal, dm){
+  const m = ((Math.floor(cal) % 12) + 12) % 12, fk = Math.floor(cal / 12) + '-' + m;
+  if (FEST[m] && !st.usedFest.has(fk) && chance(.75)){
+    st.usedFest.add(fk);
+    return {t:FEST[m], d:{qol:4}, dm, kind:'life', mem:true};
+  }
+  const pool = LIFE.filter((e, i) => !st.usedLife.has(i)
+    && (phase === 'pre' ? !e.sick : !e.pre)
+    && (!e.p || e.p === (phase === 'decline' ? 'decline' : 'well'))
+    && (!e.w || e.w(st, m)));
+  if (!pool.length) return {t:'วันธรรมดาที่ผ่านไปอย่างเงียบๆ', d:{}, dm, kind:'life'};
+  // ช่วงโรคลุกลาม: เรื่องดีมีโอกาสมากขึ้นถ้าได้พบทีมประคับประคองหรือทำหนังสือแสดงเจตนาแล้ว
+  let use = pool;
+  if (phase === 'decline'){
+    const wantGood = chance(.55 + (st.pc ? .25 : 0) + (st.acp ? .1 : 0));
+    const sub = pool.filter(e => wantGood ? (e.d.qol || 0) > 0 : (e.d.qol || 0) <= 0);
+    if (sub.length) use = sub;
+  }
+  const e = pick(use);
+  st.usedLife.add(LIFE.indexOf(e));
+  return {t:e.t, d:e.d, dm, kind:'life', mem:e.mem || (e.d.qol || 0) >= 3};
+}
+
+/* ---------------- การรักษาแต่ละสูตร ---------------- */
+const SE = {
+  targeted:[['ผื่นแดงคล้ายสิวขึ้นเต็มหน้า คันจนนอนไม่หลับ ทายาแล้วดีขึ้น', {qol:-5}, 'ผื่น'], ['เล็บเท้าอักเสบ เดินแล้วเจ็บ', {qol:-4}, 'เล็บอักเสบ'], ['ท้องเสียวันละ 3–4 ครั้ง', {qol:-4, phys:-3}, 'ท้องเสีย']],
+  chemo:[['หลังให้ยา คลื่นไส้ กินอะไรไม่อร่อย นอนทั้งวันไปสามวัน', {qol:-8, phys:-4}, 'คลื่นไส้'], ['ไข้สูงตอนตีสองจากเม็ดเลือดขาวต่ำ นอนโรงพยาบาล 5 วัน', {phys:-10, hosp:5}, 'ไข้จากเม็ดเลือดขาวต่ำ'],
+         ['ปลายนิ้วชา ติดกระดุมเสื้อเองไม่ได้', {qol:-4}, 'ชาปลายมือ'], ['ผมร่วงเป็นกระจุกตอนสระผม', {qol:-4}, 'ผมร่วง']],
+  io:[['เพลียผิดปกติ ตรวจพบไทรอยด์ทำงานต่ำจากภูมิคุ้มกัน ต้องกินยาทดแทนตลอดชีวิต', {qol:-4}, 'ไทรอยด์ทำงานต่ำ'], ['ถ่ายเหลววันละ 7 ครั้ง ลำไส้อักเสบจากภูมิคุ้มกัน นอนโรงพยาบาล 6 วัน', {phys:-8, hosp:6}, 'ลำไส้อักเสบ'],
+      ['ผื่นคันตามตัว ทายาแล้วดีขึ้น', {qol:-3}, 'ผื่นคัน']],
+  ami:[['มือเท้าบวม ผื่นขึ้นตามตัว', {qol:-4}, 'มือเท้าบวม']]
+};
+const LINES = {
+  egfr1:{name:'ยามุ่งเป้า', se:['targeted'], ild:true, resp:.8, pfs:19, next:'egfr2'},
+  egfr2:{name:'ยามุ่งเป้าสูตรใหม่ร่วมกับเคมีบำบัด', se:['chemo','ami'], resp:.6, pfs:6, next:'doce', n:6, pfsT:'ราว 6 เดือน',
+         desc:'เจาะชิ้นเนื้อซ้ำเพื่อดูสาเหตุที่ดื้อยา แล้วเปลี่ยนเป็นยา amivantamab ร่วมกับเคมีบำบัด', seT:'ผื่น มือเท้าบวม เม็ดเลือดต่ำ คลื่นไส้'},
+  io1:{name:() => st.pdl1 === 'high' ? 'ภูมิคุ้มกันบำบัด' : 'เคมีบำบัดร่วมกับภูมิคุ้มกันบำบัด',
+       se:() => st.pdl1 === 'high' ? ['io'] : ['chemo','io'], resp:.5, pfs:12, durable:.12, next:'doce'},
+  chemo1:{name:'เคมีบำบัด', se:['chemo'], resp:.3, pfs:5, next:'io2'},
+  io2:{name:'ภูมิคุ้มกันบำบัด', se:['io'], resp:.2, pfs:4, next:null, n:2, pfsT:'ราว 3–4 เดือน',
+       desc:'เปลี่ยนเป็นยาภูมิคุ้มกันบำบัด', seT:'อ่อนเพลีย ไทรอยด์ ลำไส้อักเสบ'},
+  doce:{name:'เคมีบำบัดสูตรใหม่', se:['chemo'], resp:.15, pfs:4, next:null, n:1, pfsT:'ราว 3–4 เดือน',
+        desc:'เปลี่ยนเป็นเคมีบำบัดตัวใหม่ (docetaxel)', seT:'เม็ดเลือดต่ำ ติดเชื้อง่าย อ่อนเพลีย ผมร่วง'}
+};
+const val = v => typeof v === 'function' ? v() : v;
+
+// เริ่มสูตรใหม่: สร้างฟีดผลข้างเคียงล่วงหน้า แล้วคืนฉากถัดไป
+function startLine(id){
+  const L = LINES[id];
+  st.phase = 'tx'; st.lineId = id; st.lineName = val(L.name); st.pReason = null;
+  st.tx.push(st.lineName); log('เริ่ม' + st.lineName);
+  st.responded = chance(L.resp);
+  st.durable = !!L.durable && st.responded && chance(L.durable);
+  const pool = val(L.se).flatMap(k => SE[k]).slice();
+  const se1 = pool.splice(Math.floor(R() * pool.length), 1)[0];
+  const se2 = pool.splice(Math.floor(R() * pool.length), 1)[0];
+  const ild = L.ild && chance(.04);
+  const lines = [{t: id === 'egfr1' ? 'เริ่มยามุ่งเป้า กินวันละเม็ดที่บ้าน' : 'เริ่ม' + st.lineName, dm:.2, kind:'med'},
+                 {t:se1[0], d:se1[1], dm:.8, kind:'med', se:se1[2]}];
+  lines.push(ild
+    ? {t:'ไอและเหนื่อยมากขึ้นทันทีทั้งที่ก้อนยุบ หมอบอกว่าเป็นปอดอักเสบจากยาซึ่งพบได้ไม่บ่อย ต้องหยุดยานี้ถาวร', d:{phys:-10, hosp:7}, dm:.6, kind:'med', se:'ปอดอักเสบจากยา', log:true}
+    : {lifeAt:'well', dm:.6});
+  if (!ild) lines.push({t:se2[0], d:se2[1], dm:.8, kind:'med', se:se2[2]});
+  st.lineMonths = lines.reduce((a, l) => a + l.dm, 0);
+  st.feed = {imgs:['clinic','pills','scan'], lines, music:3};
+  if (ild){ st.responded = false; st.pReason = 'ild'; return 'p'; }
+  return st.tx.length === 1 ? 'txcheck' : (st.responded ? 'r' : 'p');
+}
+function stopTx(){ log('ตัดสินใจหยุดการรักษามะเร็ง'); return toDecline(); }
+function toDecline(){
+  st.phase = 'decline';
+  if (!st.pc && st.pcOffers < 2 && st.biopsy) return 'e15b';
+  st.feed = {decline:1}; return 'd1';
+}
+const afterR = () => (!st.acp && st.acpOffers === 0) ? 'acp' : 'p';
+const afterAcp = () => st.phase === 'decline' ? 'd6' : 'p';
+
+// ช่วงโรคสงบ: เวลาวิ่งในฟีด ตามสิ่งที่ผู้เล่นเลือก
+function spend(kind){
+  const months = st.rDur, n = clamp(Math.round(months / 2.5), 3, 6), dm = months / n;
+  const first = kind === 'bucket' ? {t:'ได้ทำสิ่งที่อยากทำมานานกับ{ผู้ดูแล}', d:{qol:6}, mem:true}
+              : kind === 'work' ? {t:WORK_LINE[st.life], d:{qol:4}}
+              : {t:'มื้อเย็นที่บ้านกับ{ผู้ดูแล}ทุกวัน', d:{qol:5}, mem:true};
+  if (kind === 'bucket'){ st.bucket = true; log('ได้ทำสิ่งที่อยากทำมานาน', true); }
+  const lines = [{...first, dm, kind:'life'}];
+  for (let i = 1; i < n; i++) lines.push(i === Math.floor(n / 2) ? {t:'สแกนตามนัด ผลยังดีอยู่', d:{phys:2, qol:2}, dm, kind:'med'} : {lifeAt:'well', dm});
+  st.feed = {imgs:{bucket:['road','photo','calendar'], work:['desk','scan','calendar'], home:['meal','sunset','calendar']}[kind], lines, music:1};
+  return afterR();
+}
+
+// ฟีดช่วงโรคลุกลาม 3 ช่วง
+function declineFeed(part){
+  if (!st.declineD) st.declineD = jitter(st.pc ? 6 : 4);
+  const D = st.declineD * (part === 1 ? .3 : .35);
+  const L = [];
+  // เรื่องร้ายกับเรื่องดีวางสลับกัน ผู้เล่นที่ได้พบทีมประคับประคองหรือทำหนังสือแสดงเจตนาจะได้บรรทัดดีๆ เพิ่ม
+  const relief = st.pc ? {t:'ทีมดูแลแบบประคับประคองปรับยา ปวดและเหนื่อยน้อยลง นอนหลับได้ทั้งคืนเป็นครั้งแรกในรอบเดือน', d:{qol:6}, kind:'med'} : null;
+  if (part === 1){
+    L.push({t:'เหนื่อยง่ายขึ้น เดินได้ไม่ถึงปากซอย', d:{phys:-6, qol:-3}, kind:'med'}, {lifeAt:'decline'});
+    if (relief) L.push(relief);
+    L.push({lifeAt:'decline'});
+  } else if (part === 2){
+    L.push(st.pc ? {t:'ไข้สูง ปอดอักเสบ ทีมเยี่ยมบ้านให้ยาฆ่าเชื้อที่บ้าน', d:{phys:-8}, kind:'med', log:true}
+                 : {t:'ไข้สูง ปอดอักเสบ นอนโรงพยาบาล 7 วัน', d:{phys:-8, hosp:7}, kind:'med', log:true},
+           {lifeAt:'decline'},
+           {t:'ปวดหัวตอนเช้า อาเจียน ตรวจพบมะเร็งลามไปสมอง หมอให้ยาลดสมองบวม', d:{phys:-6, qol:-5}, kind:'med', log:true});
+    if (st.pc) L.push({t:'พยาบาลเยี่ยมบ้านสอน{ผู้ดูแล}ดูแลอาการ {ผู้ดูแล}บอกว่าไม่รู้สึกว่าต้องแบกคนเดียวอีกแล้ว', d:{qol:4}, kind:'med'});
+    else L.push({lifeAt:'decline'});
+  } else {
+    L.push({t:'กินได้ไม่กี่คำ {ผู้ดูแล}ทำของโปรดให้ทีละนิด ในระยะท้าย การเบื่ออาหารเกิดจากตัวโรค', d:{phys:-5, qol:-5}, kind:'med'}, {lifeAt:'decline'});
+    if (st.acp) L.push({t:'ทุกคนในบ้านรู้แล้วว่า {ชื่อ} ต้องการอะไร บรรยากาศในบ้านผ่อนคลายลง', d:{qol:4}, kind:'life', mem:true});
+    if (chance(.6)) L.push(st.pc ? {t:'ปอดอักเสบอีกครั้ง ทีมเยี่ยมบ้านดูแลที่บ้าน', d:{phys:-8, qol:-4}, kind:'med', log:true}
+                                 : {t:'ปอดอักเสบอีกครั้ง เป็นครั้งที่สองในสองเดือน นอนโรงพยาบาล 6 วัน', d:{phys:-8, qol:-4, hosp:6}, kind:'med', log:true});
+    L.push({lifeAt:'decline'});
+  }
+  L.forEach(l => { l.dm = D / L.length; l.wear = true; if (l.lifeAt) l.extra = {phys:-2}; });
+  return {imgs:['chair','pills'], lines:L};
+}
+
+/* ---------------- ฉากที่ต้องตัดสินใจ ----------------
+   enter(): ทำงานครั้งเดียวตอนเข้าฉาก   body: string = ย่อหน้า, {q} = หมอพูด, {note} = ตัวเล็ก
+   info: {title, lead, people:[{n,label}], more:[...]}   choices: act() คืนชื่อฉากถัดไป
+   act() ตั้ง st.fb = ผลของการตัดสินใจ, st.feed = ฟีดชีวิตก่อนไปฉากถัดไป */
+const S = {
+intro:() => ({
+  chapter:'ชีวิตตอนนี้', title:'{ชื่อ}', ill:'hourglass',
+  body:[AGE_TEXT[st.age], LIFE_TEXT[st.life]],
+  choices:[{label:'ใช้ชีวิตต่อไป', act(){
+    const imgs = {job:['desk','meal'], biz:['meal','sunset'], study:['desk','photo']}[st.life] || ['sunset','meal'];
+    st.feed = {imgs, pre:true, music:1, lines:[{lifeAt:'pre', dm:1}, {lifeAt:'pre', dm:1}, {lifeAt:'pre', dm:1},
+                                      {t:'ไอแห้งๆ ไม่หายสักที คิดว่าเป็นหวัด', dm:1, kind:'med'}]};
+    return 'e1'; }}]
+}),
+
+e1:() => ({
+  enter(){ st.diagnosed = true; st.phase = 'dx'; log('สแกนพบก้อนที่ปอด สงสัยมะเร็งระยะแพร่กระจาย'); },
+  chapter:'ช่วงวินิจฉัย', title:'อาการที่ไม่หายไป',
+  body:['{ชื่อ} ไอมาสองเดือน ขึ้นบันไดชั้นเดียวก็เหนื่อย น้ำหนักลดไป 5 กิโล {ผู้ดูแล}พาไปโรงพยาบาล',
+        {q:'ผลสแกนพบก้อนที่ปอด และมีจุดที่ปอดอีกข้างกับกระดูกสันหลัง น่าจะเป็นมะเร็งปอดที่กระจายแล้ว ระยะนี้รักษาให้หายขาดไม่ได้ แต่มีหลายวิธีช่วยคุมโรค'},
+        {q:'หมอแนะนำให้[[เจาะชิ้นเนื้อ]] เพื่อยืนยันและดูว่าเป็นชนิดไหน'}],
+  info:{title:'ทำไมต้องเจาะ', lead:'บอกได้ว่ามี[[ยีนกลายพันธุ์]]ที่มียาตรงจุดหรือไม่ รอผลราว 3 สัปดาห์',
+        more:['ยืนยันว่าเป็นมะเร็งจริง ไม่ใช่โรคอื่นที่หน้าตาคล้ายกัน', 'ตรวจว่ายา[[ภูมิคุ้มกันบำบัด]]น่าจะได้ผลแค่ไหน', 'ความเสี่ยง: เจ็บที่แผล บางรายมีลมรั่วในช่องปอด ส่วนใหญ่ไม่รุนแรง']},
+  choices:[
+    {label:'เจาะชิ้นเนื้อและตรวจยีน', act(){ st.biopsy = true; log('เลือกเจาะชิ้นเนื้อและตรวจยีน'); return 'e15'; }},
+    {label:'ไม่ขอตรวจเพิ่ม ขอดูแลตามอาการ', act(){ log('เลือกไม่ตรวจเพิ่ม ดูแลตามอาการ');
+      st.fb = 'เป็นสิทธิ์ของคุณ หลายคนเลือกทางนี้ โดยเฉพาะเมื่ออายุมากหรือมีโรคอื่นร่วม'; return 'e15'; }}
+  ]
+}),
+e15:() => palliativeOffer(false),
+e15b:() => palliativeOffer(true),
+
+e2:() => {
+  const egfr = st.mutation === 'EGFR', high = st.pdl1 === 'high';
+  const ioName = high ? 'ภูมิคุ้มกันบำบัด' : 'เคมีบำบัดร่วมกับภูมิคุ้มกันบำบัด';
+  return {
+    enter(){
+      st.mutation = chance(.5) ? 'EGFR' : 'none';
+      if (st.mutation === 'none') st.pdl1 = chance(.3) ? 'high' : 'low';
+      log(st.mutation === 'EGFR' ? 'ผลชิ้นเนื้อ: พบยีนกลายพันธุ์ที่มียาตรงจุด' : 'ผลชิ้นเนื้อ: ไม่พบยีนที่มียาเฉพาะ');
+    },
+    chapter:'ช่วงวินิจฉัย', title:'ผลชิ้นเนื้อ',
+    body: egfr ? [{q:'ผลยืนยันว่าเป็นมะเร็งปอดระยะที่ 4 แต่พบ[[ยีนกลายพันธุ์]]ที่มียาตรงจุด เป็นยาเม็ดกินวันละครั้ง'}]
+               : [{q:'ผลยืนยันว่าเป็นมะเร็งปอดระยะที่ 4 ไม่พบยีนที่มียาเฉพาะ แต่ยังมีทางเลือกอื่น' + (high ? ' และผลตรวจบอกว่ายา[[ภูมิคุ้มกันบำบัด]]น่าจะได้ผลดี' : '')}],
+    info: egfr
+      ? {title:'[[ยามุ่งเป้า]]', people:[{n:8, label:'ใน 10 คน ก้อนยุบลง <b>8 คน</b>'}],
+         lead:'คุมโรคได้ราว 1 ปีครึ่ง อยู่ได้ราว 3 ปี ([[ค่ากลาง]]) แต่สุดท้ายโรคจะดื้อยา',
+         more:['ผลข้างเคียงที่พบบ่อย: ผื่นคล้ายสิว ท้องเสีย เล็บอักเสบ', 'ชื่อยา osimertinib ตัวเลขจากงานวิจัย FLAURA']}
+      : {title:'จำนวนคนที่ก้อนยุบลง ใน 10 คน', people:[{n:5, label:`${ioName} <b>5 คน</b>`}, {n:3, label:'เคมีบำบัดอย่างเดียว <b>3 คน</b>'}],
+         lead:`อยู่ได้ราว 2 ปีกับ${high ? '[[ภูมิคุ้มกันบำบัด]]' : 'ยาที่มี[[ภูมิคุ้มกันบำบัด]]'} และราว 10–12 เดือนกับ[[เคมีบำบัด]]อย่างเดียว ([[ค่ากลาง]])`,
+         more:['ภูมิคุ้มกันบำบัด: ส่วนน้อยคุมโรคได้นานหลายปี ผลข้างเคียงคืออ่อนเพลีย ไทรอยด์ ลำไส้หรือปอดอักเสบ', 'เคมีบำบัด: คลื่นไส้ เม็ดเลือดต่ำ ติดเชื้อง่าย ชาปลายมือเท้า']},
+    choices: egfr
+      ? [{label:'รับยามุ่งเป้า', act:() => startLine('egfr1')},
+         {label:'ไม่รับยา', note:'ดูแลตามอาการ', act(){ log('เลือกไม่รับยา'); return toDecline(); }}]
+      : [{label:ioName, act:() => startLine('io1')},
+         {label:'เคมีบำบัดอย่างเดียว', act:() => startLine('chemo1')},
+         {label:'ไม่รับยา', note:'ดูแลตามอาการ', act(){ log('เลือกไม่รับยา'); return toDecline(); }}]
+  };
+},
+
+txcheck:() => ({
+  chapter:'กำลังรักษา', title:'จะรักษาต่อไหม',
+  body:[`ผ่านมา ${fmtM(st.lineMonths)} กับ${st.lineName} บางวันผลข้างเคียงทำให้ลำบาก หมอนัดสแกนดูผลในอีกไม่กี่สัปดาห์`],
+  choices:[
+    {label:'รักษาต่อ', act:() => st.responded ? 'r' : 'p'},
+    {label:'หยุดรักษามะเร็ง', note:'เปลี่ยนเป้าหมายการดูแลให้เน้นความสุขสบาย', act:() => stopTx()}
+  ]
+}),
+
+r:() => ({
+  enter(){
+    const L = LINES[st.lineId];
+    st.rDur = Math.max(1.5, (st.durable ? 36 + R() * 12 : jitter(L.pfs)) - st.lineMonths);
+    chg({phys:15, qol:10});
+    log(st.durable ? 'โรคสงบได้นานเป็นพิเศษ' : 'ก้อนยุบลง โรคสงบ');
+  },
+  chapter:'ช่วงเวลาที่ดี', title:'ก้อนยุบลง',
+  body:['ผลสแกนครั้งนี้ ก้อนยุบลงมาก หมอยิ้มก่อนพูด {ชื่อ} ไอน้อยลง ขึ้นบันไดได้อีกครั้ง',
+        ...(st.durable ? [{note:'หมอบอกว่าคุณเป็นส่วนน้อยที่ตอบสนองต่อยาได้ยาวนาน'}] : []),
+        `ช่วงนี้น่าจะยาวราว ${fmtM(st.rDur || 1)} จะใช้เวลาอย่างไร`],
+  choices:[
+    {label:'ทำสิ่งที่อยากทำมานาน', note:'เที่ยว พบคนที่คิดถึง หรือทำสิ่งที่ค้างไว้ในใจ', act:() => spend('bucket')},
+    {label:WORK[st.life], act:() => spend('work')},
+    {label:'อยู่บ้าน ใช้เวลากับ{ผู้ดูแล}', act:() => spend('home')}
+  ]
+}),
+
+acp:() => ({
+  enter(){ st.acpOffers++; },
+  chapter: st.phase === 'decline' ? 'ช่วงโรคลุกลาม' : 'ช่วงเวลาที่ดี', title:'คุยเรื่องที่ไม่มีใครอยากคุย',
+  body:[...(st.phase === 'decline' ? [{note:'ยังไม่สายเกินไป ตราบใดที่ยังพูดคุยได้'}] : []),
+        {q:'ถ้าวันหนึ่งป่วยหนักจนพูดเองไม่ได้ อยากให้ดูแลอย่างไร อะไรสำคัญที่สุดสำหรับคุณ ลองคุยกับครอบครัวและเขียน[[หนังสือแสดงเจตนา]]ไว้ได้ เปลี่ยนใจได้ตลอด'}],
+  choices:[
+    {label:'คุยกับ{ผู้ดูแล} ขอเน้นความสบาย', note:'ไม่ยื้อชีวิตด้วยเครื่องมือเมื่อรักษาไม่ได้แล้ว',
+     act(){ st.acp = true; st.acpChoice = 'comfort'; chg({qol:5}); log('ทำหนังสือแสดงเจตนา: ขอเน้นความสบาย'); return afterAcp(); }},
+    {label:'คุยกับ{ผู้ดูแล} ขอรักษาเต็มที่', note:'ใส่ท่อช่วยหายใจและปั๊มหัวใจถ้าจำเป็น',
+     act(){ st.acp = true; st.acpChoice = 'full'; chg({qol:5}); log('ทำหนังสือแสดงเจตนา: ขอรักษาเต็มที่'); return afterAcp(); }},
+    {label:'ไว้ก่อน ยังไม่อยากคิด', act(){ log('ยังไม่ได้คุยเรื่องหนังสือแสดงเจตนา'); return afterAcp(); }}
+  ]
+}),
+
+p:() => {
+  const L = LINES[st.lineId], nx = L.next ? LINES[L.next] : null, can = nx && st.phys >= 50;
+  return {
+    enter(){ chg({phys:-10, qol:-7}); st.month += .5; log(st.pReason === 'ild' ? 'หยุดยามุ่งเป้าเพราะปอดอักเสบจากยา' : st.responded ? 'โรคกลับมา' : 'ยาไม่ได้ผล โรคลุกลาม'); },
+    chapter:'โรคกลับมา', title: st.responded || st.pReason === 'ild' ? 'โรคกลับมา' : 'ยาไม่ได้ผล',
+    body:[ st.pReason === 'ild' ? 'ปอดอักเสบดีขึ้นแล้ว แต่ใช้ยาเดิมต่อไม่ได้'
+           : st.responded ? 'อาการไอกลับมา ผลสแกนพบก้อนโตขึ้น และมีจุดใหม่ที่ตับ ยาเดิมไม่ได้ผลแล้ว'
+           : 'ผลสแกนหลังให้ยา ก้อนไม่ยุบ กลับโตขึ้นเล็กน้อย ยาตัวนี้ไม่ได้ผลกับ {ชื่อ}',
+      can ? {q:'ยังมีการรักษาสูตรถัดไป แต่มักได้ผลน้อยกว่าและสั้นกว่าเดิม'}
+          : {q:'หมออยากพูดตรงๆ ' + (nx ? 'ร่างกายตอนนี้อาจรับยาไม่ไหว ยาอาจทำร้ายมากกว่าช่วย' : 'ตอนนี้ไม่มียาที่น่าจะช่วยคุมโรคได้แล้ว') + ' สิ่งที่ทำได้ดีที่สุดคือดูแลให้คุณสบายที่สุด'} ],
+    info: can ? {title:'สูตรถัดไป: ' + val(nx.name), people:[{n:nx.n, label:nx.n === 1 ? 'ใน 10 คน ก้อนยุบลง <b>ราว 1–2 คน</b>' : `ใน 10 คน ก้อนยุบลง <b>${nx.n} คน</b>`}],
+                 lead:`คุมโรคได้${nx.pfsT} ([[ค่ากลาง]])`, more:[nx.desc, 'ผลข้างเคียง: ' + nx.seT]} : null,
+    choices: can ? [{label:'รับการรักษาสูตรถัดไป', act:() => startLine(L.next)},
+                    {label:'หยุดการรักษามะเร็ง', note:'เปลี่ยนเป้าหมายการดูแลให้เน้นความสุขสบาย', act:() => stopTx()}]
+                 : [{label:'เข้าใจแล้ว', act(){ log('ไม่มีการรักษาเฉพาะโรคที่เหมาะสมแล้ว'); return toDecline(); }}]
+  };
+},
+
+d1:() => ({
+  enter(){ if (!st.declineLogged){ st.declineLogged = true; log('เข้าสู่ช่วงโรคลุกลาม'); } },
+  chapter:'ช่วงโรคลุกลาม', title:'น้ำในเยื่อหุ้มปอด',
+  body:['นอนราบไม่ได้ ต้องนั่งหลับพิงหมอน เหนื่อยแม้แค่เดินเข้าห้องน้ำ', {q:'มีน้ำขังในช่องเยื่อหุ้มปอดขวาจำนวนมาก กดปอดจนหายใจไม่อิ่ม'},
+        ...(st.pc ? [{note:'ทีมดูแลแบบประคับประคองโทรมาถามอาการ และปรับยาให้ทันที'}] : [])],
+  choices:[
+    {label:'เจาะระบายน้ำออก', note:'หายเหนื่อยเร็ว แต่น้ำมักกลับมาใน 2–4 สัปดาห์', act(){ chg({phys:3, qol:5, hosp:1}); log('เจาะระบายน้ำในเยื่อหุ้มปอด');
+      st.fb = 'หายเหนื่อยทันที แต่สามสัปดาห์ต่อมาน้ำกลับมาอีก ต้องมาเจาะซ้ำ'; return toFeed2(); }},
+    {label:'เจาะระบาย แล้วทำ[[การเชื่อมเยื่อหุ้มปอด]]', note:'นอนโรงพยาบาล 4–7 วัน เจ็บและอาจมีไข้ สำเร็จราว 3 ใน 4 คน', act(){
+      const days = 4 + Math.floor(R() * 4);
+      chg({hosp:days, qol:-5, phys:-3});
+      if (chance(.75)){ chg({phys:7, qol:10}); log('ทำการเชื่อมเยื่อหุ้มปอดสำเร็จ');
+        st.fb = `นอนโรงพยาบาล ${days} วัน มีไข้และเจ็บหน้าอกอยู่สองสามวัน หลังถอดสาย น้ำไม่กลับมาอีก`; }
+      else { log('ทำการเชื่อมเยื่อหุ้มปอดไม่สำเร็จ');
+        st.fb = `นอนโรงพยาบาล ${days} วัน เจ็บและมีไข้ แต่เยื่อหุ้มปอดไม่ติดกัน น้ำกลับมาอีกในหนึ่งเดือน ซึ่งเกิดได้ราว 1 ใน 4 คน`; }
+      return toFeed2(); }},
+    {label:'ใส่[[สายระบายค้างไว้]]', note:'ไม่ต้องเจาะใหม่ แต่ต้องไปปล่อยน้ำที่คลินิกเป็นระยะ', act(){ chg({phys:2, hosp:1, qol:3}); log('ใส่สายระบายน้ำค้างไว้');
+      st.fb = 'ทุก 1–2 สัปดาห์ {ผู้ดูแล}ต้องพาไปปล่อยน้ำที่คลินิก การเดินทางแต่ละครั้งเหนื่อยไม่น้อย'; return toFeed2(); }},
+    {label:'ไม่เจาะ ใช้ออกซิเจนและ[[มอร์ฟีน]]บรรเทาเหนื่อย', act(){ chg({phys:2, qol: st.pc ? 5 : 2}); log('ใช้ออกซิเจนและมอร์ฟีนบรรเทาเหนื่อย');
+      st.fb = 'มอร์ฟีนขนาดต่ำช่วยลดความรู้สึกเหนื่อยหอบได้ โดยไม่ทำให้เสียชีวิตเร็วขึ้นเมื่อใช้อย่างเหมาะสม'; return toFeed2(); }}
+  ]
+}),
+d3:() => ({
+  chapter:'ช่วงโรคลุกลาม', title:'ปวดหลัง',
+  body:['ปวดหลังร้าวลงขา กลางคืนนอนไม่หลับ ยาพาราเอาไม่อยู่', {q:'มะเร็งกระจายไปที่กระดูกสันหลัง หมอแนะนำยาแก้ปวด[[มอร์ฟีน]]'},
+        '{ผู้ดูแล}กระซิบว่า มอร์ฟีนมันเป็นยาเสพติดหรือเปล่า ได้ยินว่าให้แล้วจะอยู่ได้ไม่นาน'],
+  choices:[
+    {label:'รับยามอร์ฟีนตามแพทย์สั่ง', act(){ chg({qol:8}); log('เริ่มมอร์ฟีนคุมปวด');
+      st.fb = 'ในผู้ป่วยมะเร็ง การใช้มอร์ฟีนตามแพทย์สั่งแทบไม่ทำให้ติดยา และไม่ทำให้เสียชีวิตเร็วขึ้น'; return toFeed3(); }},
+    {label:'[[ฉายแสง]]ที่กระดูก ร่วมกับยาแก้ปวด', note:'มาโรงพยาบาล 1–5 ครั้ง', act(){ chg({phys:-3, qol:12}); log('ฉายแสงที่กระดูกสันหลัง');
+      st.fb = 'อาการปวดลดลงชัดเจนหลังฉายแสงราวสองสัปดาห์'; return toFeed3(); }},
+    {label:'ทนเอา ไม่อยากใช้ยาแรง', act(){ chg({qol:-15, phys:-10}); log('เลือกไม่ใช้มอร์ฟีน'); return toFeed3(); }}
+  ]
+}),
+d6:() => ({
+  chapter:'ช่วงโรคลุกลาม', title:'อยากอยู่ที่ไหน',
+  body:['ช่วงนี้ {ชื่อ} หลับมากขึ้น ตื่นมาคุยได้เป็นช่วงๆ', {q:'ถ้าถึงเวลา อยากอยู่ที่ไหน'}],
+  choices:[
+    {label:'บ้าน', act(){ st.place = 'home'; log('เลือกอยู่บ้านช่วงท้าย');
+      if (!st.pc) st.fb = '{ผู้ดูแล}ไม่แน่ใจว่าจะดูแลที่บ้านไหวไหม ถ้ามีทีมเยี่ยมบ้านจะช่วยได้มาก'; return 'f'; }},
+    {label:'โรงพยาบาล', act(){ st.place = 'hospital'; log('เลือกอยู่โรงพยาบาลช่วงท้าย'); return 'f'; }},
+    {label:'ยังไม่อยากคิดเรื่องนี้', act(){ st.place = null; log('ยังไม่ได้เลือกสถานที่ช่วงท้าย'); return 'f'; }}
+  ]
+}),
+
+px:() => ({
+  enter(){ st.proxyAsked = true; },
+  chapter:'ช่วงโรคลุกลาม', title:'ใครจะพูดแทนคุณ',
+  body:[{q:'ช่วงนี้ {ชื่อ} เริ่มสับสนเป็นบางเวลา ถ้าวันหนึ่งคุณตัดสินใจเองไม่ได้แล้ว ใครจะเป็น[[ผู้แทนตัดสินใจ]]เรื่องการรักษาแทนคุณ'},
+        {note:'ในชีวิตจริง ระบุชื่อผู้แทนไว้ในหนังสือแสดงเจตนาได้'}],
+  input:{id:'px-name', label:'ชื่อผู้แทนตัดสินใจ', placeholder:'พิมพ์ชื่อคนที่คุณไว้ใจ'},
+  choices:[
+    {label:'ยืนยันชื่อนี้', act(){ const v = (document.getElementById('px-name').value || '').trim().slice(0, 40);
+      if (v){ st.proxy = v; log('ระบุผู้แทนตัดสินใจ: ' + v); } else { st.proxySkipped = true; log('ยังไม่ได้ระบุผู้แทนตัดสินใจ'); }
+      return st.pending; }},
+    {label:'ข้าม ยังนึกไม่ออก', act(){ st.proxySkipped = true; log('ยังไม่ได้ระบุผู้แทนตัดสินใจ'); return st.pending; }}
+  ]
+}),
+
+f:() => {
+  const icu = {label:'ใส่ท่อช่วยหายใจ และปั๊มหัวใจถ้าจำเป็น', act(){ log('ตัดสินใจใส่ท่อช่วยหายใจ'); return 'end_icu'; }};
+  const comfort = {label:'ดูแลแบบประคับประคอง ไม่ใส่ท่อ ไม่ปั๊มหัวใจ', act(){ log('ตัดสินใจดูแลแบบประคับประคอง'); return 'end_comfort'; }};
+  const doc = st.acpChoice === 'full' ? 'ขอให้หมอทำทุกอย่างเต็มที่' : 'ถ้าถึงวันที่รักษาไม่ได้แล้ว ขอไม่ใส่ท่อ ขอให้ได้อยู่อย่างสบาย';
+  return {
+    enter(){ st.month += .05; },
+    chapter:'คืนสุดท้าย', title:'คืนที่หายใจไม่ทัน',
+    body:['ตีสาม {ชื่อ} หายใจเร็วและตื้น ปลายมือเย็น ออกซิเจนเปิดสุดแล้วก็ยังไม่พอ แพทย์เวรมาคุยกับ{ผู้แทน}',
+      {q:'ถ้าใส่[[ท่อช่วยหายใจ]] เครื่องจะหายใจแทนได้ แต่สาเหตุคือตัวโรคที่รักษาไม่ได้แล้ว โอกาสถอดท่อและกลับบ้านมีต่ำมาก ผู้ป่วยจะพูดไม่ได้ อยู่ใน[[ไอซียู]] และถ้าหัวใจหยุด ทีมต้องปั๊มหัวใจ'},
+      {q:'อีกทางคือดูแลให้สบาย ให้ยาบรรเทาเหนื่อยและความทรมาน ให้ครอบครัวอยู่ด้วยจนถึงวาระสุดท้าย'},
+      ...(st.acp ? [`{ผู้แทน}หยิบเอกสารที่ {ชื่อ} เขียนไว้ขึ้นมา ในนั้นเขียนว่า "${doc}"`]
+                 : ['{ชื่อ} ซึมจนตอบคำถามไม่ได้แล้ว <b>คุณคือ{ผู้แทน} คุณจะตัดสินใจอย่างไร</b>',
+                    {note: st.proxySkipped ? 'ไม่เคยคุยกันเรื่องนี้ และไม่เคยมีใครถูกบอกไว้ว่าต้องเป็นคนตัดสินใจ' : 'ไม่เคยคุยกันเรื่องนี้เลย'}])],
+    choices: st.acpChoice === 'comfort' ? [comfort, icu] : [icu, comfort]
+  };
+},
+end_icu:() => ({
+  enter(){ const d = 5 + Math.floor(R() * 10); st.icuDays = d; chg({hosp:d}); st.month += d / 30; st.ending = 'icu'; log('เสียชีวิตในไอซียู'); },
+  chapter:'วาระสุดท้าย', title:'ไอซียู', ill:'icu',
+  body:['{ชื่อ} ถูกย้ายไปไอซียู ใส่ท่อช่วยหายใจ ได้ยานอนหลับ ห้องเต็มไปด้วยเสียงเครื่องมือ',
+        '{ผู้แทน}เข้าเยี่ยมได้วันละสองช่วง จับมือได้ แต่ไม่ได้ยินเสียงตอบ',
+        `คืนวันที่ ${st.icuDays} หัวใจหยุดเต้น ทีมปั๊มหัวใจอยู่ 30 นาที {ชื่อ} เสียชีวิตในไอซียู {ผู้แทน}กำลังเดินทางมา แต่มาไม่ทัน`],
+  choices:[{label:'ดูสรุปชีวิต', act:() => 'summary'}]
+}),
+end_comfort:() => ({
+  enter(){ const d = 1 + Math.floor(R() * 3); st.place = st.place || 'hospital';
+    if (st.place === 'hospital') chg({hosp:d}); st.month += d / 30; st.ending = 'comfort';
+    log(st.place === 'home' ? 'จากไปอย่างสงบที่บ้าน' : 'จากไปอย่างสงบที่โรงพยาบาล'); },
+  chapter:'วาระสุดท้าย', title: st.place === 'home' ? 'ที่บ้าน' : 'ห้องพักผู้ป่วย', ill: st.place === 'home' ? 'home' : 'ward',
+  body:['ทีมปรับยาให้ {ชื่อ} หายใจสบายขึ้น หลับได้ ใบหน้าผ่อนคลาย',
+        '{ผู้แทน}นั่งข้างเตียง เปิดเพลงที่ {ชื่อ} ชอบ ญาติที่อยู่ไกลวิดีโอคอลมาบอกลา',
+        ...(st.bucket ? ['{ผู้แทน}เล่าถึงวันที่ได้ทำสิ่งที่อยากทำมานานด้วยกัน {ชื่อ} ยิ้มเล็กๆ'] : []),
+        'ช่วงเช้ามืด {ชื่อ} หายใจช้าลง แล้วจากไปอย่างสงบ มีคนที่รักอยู่ข้างๆ'],
+  choices:[{label:'ดูสรุปชีวิต', act:() => 'summary'}]
+})
+};
+
+function palliativeOffer(again){
+  return {
+    enter(){ st.pcOffers++; },
+    chapter: again ? 'ก่อนช่วงโรคลุกลาม' : 'ช่วงวินิจฉัย', title: again ? 'ทีมที่ยังรอคุณอยู่' : 'เพื่อนร่วมทางอีกทีม',
+    body:[{q: again ? 'อาการช่วงต่อไปจะมากขึ้น [[ทีมดูแลแบบประคับประคอง]]ช่วยคุมอาการเหนื่อยและปวด ทั้งที่โรงพยาบาลและที่บ้าน และช่วยครอบครัวเตรียมตัว'
+                    : 'นอกจากทีมรักษามะเร็ง ยังมี[[ทีมดูแลแบบประคับประคอง]] ช่วยดูแลอาการเหนื่อย ปวด นอนไม่หลับ และช่วยครอบครัววางแผน พบได้ตั้งแต่ตอนนี้ คู่กับการรักษา ไม่ได้แปลว่าหยุดรักษา'}],
+    info:{title:'งานวิจัย', lead:'ผู้ป่วยมะเร็งปอดที่ได้พบทีมนี้ตั้งแต่ต้น คุณภาพชีวิตดีกว่า และอยู่ได้นานขึ้นราว 2–3 เดือน', more:['Temel และคณะ, NEJM 2010']},
+    choices:[
+      {label:'นัดพบทีมดูแลแบบประคับประคอง', act(){ st.pc = true; chg({qol:10}); log('เริ่มพบทีมดูแลแบบประคับประคอง'); return nextAfterPc(again); }},
+      {label:'ยังไม่ต้อง ตอนนี้ยังไหว', act(){ log('ยังไม่พบทีมดูแลแบบประคับประคอง'); return nextAfterPc(again); }}
+    ]
+  };
+}
+function nextAfterPc(again){
+  if (st.biopsy && !again){
+    st.feed = {imgs:['clinic','phone'], music:2, lines:[{t:'รอผลชิ้นเนื้อ ทุกครั้งที่โทรศัพท์ดัง ใจหายวาบ', dm:.35, kind:'med'}, {lifeAt:'well', dm:.4}]};
+    return 'e2';
+  }
+  st.phase = 'decline'; st.feed = {decline:1}; return 'd1';
+}
+const toFeed2 = () => { st.feed = {decline:2}; return 'd3'; };
+const toFeed3 = () => { st.feed = {decline:3}; return st.acp ? 'd6' : 'acp'; };
+
+/* ---------------- engine ---------------- */
+/* ---------------- ย้อนกลับ ----------------
+   ทุกฉากที่ต้องตัดสินใจ เก็บสำเนา st ไว้หลัง enter() (ก่อนผู้เล่นเลือก)
+   กดย้อนกลับ = เอาสำเนานั้นกลับมาแล้ววาดฉากใหม่โดยไม่รัน enter() ซ้ำ */
+let hist = [], navToken = 0;
+const cloneSt = o => JSON.parse(JSON.stringify(o, (k, v) => v instanceof Set ? {__set:[...v]} : v), (k, v) => v && v.__set ? new Set(v.__set) : v);
+function goBack(sameScene){
+  if (!sameScene) hist.pop();
+  const top = hist[hist.length - 1];
+  if (!top) return;
+  lastHud = null;
+  render(top.id, top.snap);
+}
+const backBtn = () => `<button class="back" id="back">← ย้อนกลับ</button>`;
+
+/* ---------------- เพลงประกอบ ----------------
+   ไฟล์อยู่ในโฟลเดอร์ music/ ข้างหน้านี้ เปลี่ยนเพลงแบบค่อยๆ เบาลงแล้วค่อยๆ ดังขึ้น (crossfade)
+   เบราว์เซอร์อนุญาตให้เล่นเสียงหลังผู้เล่นแตะจอแล้วเท่านั้น จึงเริ่มเพลงตอนกด "ไหว ไปต่อ" */
+const TRACKS = {1:'music/1-daily-life.mp3', 2:'music/2-waiting.mp3', 3:'music/3-fighting-on.mp3', 5:'music/5-the-end.mp3'};
+// เปลี่ยนเพลง: เพลงเก่าค่อยๆ เบาลง 2.5 วิ → เงียบ 1 วิ → เพลงใหม่ค่อยๆ ดังขึ้น 2.5 วิ (รวมราว 6 วิ)
+const MUSIC_VOL = 0.55, FADE_MS = 1800, FADE_OUT_MS = 2500, GAP_MS = 1000, FADE_IN_MS = 2500;
+let startTimer = null;
+// เพลงเปลี่ยนตามช่วงชีวิต ไม่ใช่ตามฉาก: ก่อนป่วย → วินิจฉัย → รักษา (รวมช่วงโรคสงบ) → ลุกลาม → วาระสุดท้าย
+// และแต่ละเพลงเล่นอย่างน้อย MIN_DWELL ก่อนเปลี่ยน (ยกเว้นเข้าวาระสุดท้าย หรือเริ่มเกมใหม่)
+const MIN_DWELL = 25000;
+let muted = false, curTrack = null, players = {}, trackStart = 0, wantTrack = null, dwellTimer = null;
+try { muted = localStorage.getItem('lung-muted') === '1'; } catch (e) {}
+function fade(a, to, done, ms = FADE_MS){
+  const from = a.volume, t0 = performance.now();
+  clearInterval(a._fade);
+  a._fade = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    a.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+    if (k >= 1){ clearInterval(a._fade); done && done(); }
+  }, 50);
+}
+function setMusic(n, force){
+  if (!n) return;
+  wantTrack = n;
+  clearTimeout(dwellTimer);
+  if (n === curTrack) return;
+  const left = MIN_DWELL - (performance.now() - trackStart);
+  if (curTrack && !force && n !== 5 && left > 0){ dwellTimer = setTimeout(() => setMusic(wantTrack), left); return; }
+  const old = curTrack && players[curTrack];
+  curTrack = n; trackStart = performance.now();
+  clearTimeout(startTimer);
+  if (old) fade(old, 0, () => old.pause(), FADE_OUT_MS);
+  const a = players[n] || (players[n] = Object.assign(new Audio(TRACKS[n]), {loop:true, preload:'auto'}));
+  clearInterval(a._fade); a.pause(); a.volume = 0;
+  const start = () => {
+    if (curTrack !== n || muted) return;
+    try { a.currentTime = 0; } catch (e) {}           // เข้าช่วงใหม่ เริ่มเพลงจากต้น
+    const pr = a.play(); if (pr && pr.catch) pr.catch(() => {});
+    fade(a, MUSIC_VOL, null, FADE_IN_MS);
+  };
+  if (old) startTimer = setTimeout(start, FADE_OUT_MS + GAP_MS); else start();
+}
+function musicFor(id){
+  if (['f', 'end_icu', 'end_comfort', 'summary'].includes(id)) return 5;
+  return {pre:1, dx:2, tx:3, decline:2}[st.phase] || curTrack;
+}
+function toggleMute(){
+  muted = !muted;
+  try { localStorage.setItem('lung-muted', muted ? '1' : '0'); } catch (e) {}
+  const a = curTrack && players[curTrack];
+  if (a){ if (muted){ fade(a, 0, () => a.pause()); } else { const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); fade(a, MUSIC_VOL); } }
+  drawMute();
+}
+function drawMute(){
+  const b = document.getElementById('mute');
+  b.setAttribute('aria-pressed', muted);
+  b.setAttribute('aria-label', muted ? 'เปิดเพลง' : 'ปิดเพลง');
+  b.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${muted
+    ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+    : '<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'}</svg>`;
+}
+
+function route(id){
+  // แรงกายต่ำกว่า 30 (หรือก่อนคืนสุดท้าย) ถามเรื่องผู้แทนตัดสินใจหนึ่งครั้ง
+  const late = ['summary','end_icu','end_comfort','px'].includes(id);
+  if (!late && !st.proxyAsked && (st.phys < 30 || id === 'f')){ st.pending = id; id = 'px'; }
+  if (id === 'summary') return renderSummary();
+  render(id);
+}
+
+// เดือนตัวใหญ่ข้างหัวข้อ
+const bigWhenHTML = () => `<div class="bigwhen" aria-live="polite"><b>${st.diagnosed ? whenLabel(st.month) : 'ก่อนป่วย'}</b><small>${calLabel(curCal())}</small></div>`;
+const headHTML = (chapter, title) => `<header class="sh"><div class="titles"><p class="chapter">${chapter}</p>${title ? `<h2>${title}</h2>` : ''}</div>${bigWhenHTML()}</header>`;
+function figHTML(key){ return key.startsWith('img:') ? `<img src="${esc(key.slice(4))}" alt="">` : ILL[key](); }
+
+function peopleHTML(n, label){
+  const figs = Array.from({length:10}, (_, i) => { const x = 11 + i * 22;
+    return `<g class="${i < n ? 'on' : 'off'}"><circle cx="${x}" cy="7" r="5"/><path d="M${x - 8} 28 Q${x - 8} 14 ${x} 14 Q${x + 8} 14 ${x + 8} 28 Z"/></g>`; }).join('');
+  return `<div class="people"><svg viewBox="0 0 220 30" role="img" aria-label="${n} ใน 10 คน">${figs}</svg><span>${T(label)}</span></div>`;
+}
+function infoHTML(info){
+  let h = `<aside class="info"><h3>${T(info.title)}</h3>`;
+  if (info.people) h += info.people.map(p => peopleHTML(p.n, p.label)).join('');
+  if (info.lead) h += `<p>${T(info.lead)}</p>`;
+  if (info.more) h += `<details><summary>อ่านเพิ่ม</summary><ul>${info.more.map(x => `<li>${T(x)}</li>`).join('')}</ul></details>`;
+  return h + '</aside>';
+}
+
+function render(id, snap){
+  const tok = ++navToken;
+  if (snap) st = cloneSt(snap);         // ย้อนกลับ: ใช้สำเนาเดิม ไม่รัน enter() ซ้ำ
+  else {
+    const first = S[id]();
+    if (first.enter) first.enter();
+    hist.push({id, snap:cloneSt(st)});
+  }
+  const view = S[id]();                 // สร้างใหม่หลัง enter เพื่อให้ข้อความใช้ค่าล่าสุด
+  setMusic(musicFor(id));
+  hud();
+  const el = document.createElement('article');
+  el.className = 'scene';
+  let h = (hist.length > 1 ? backBtn() : '') + headHTML(T(view.chapter), T(view.title));
+  if (view.ill) h += `<figure>${figHTML(view.ill)}</figure>`;
+  h += '<div class="story">' + view.body.map(b =>
+        typeof b === 'string' ? `<p>${T(b)}</p>`
+      : b.q ? `<div class="quote"><b>หมอ</b><span>${T(b.q)}</span></div>`
+      : `<p class="note">${T(b.note)}</p>`).join('') + '</div>';
+  if (view.info) h += infoHTML(view.info);
+  if (view.input) h += `<div class="field"><label for="${view.input.id}">${view.input.label}</label><input type="text" id="${view.input.id}" maxlength="40" autocomplete="off" placeholder="${esc(view.input.placeholder)}"></div>`;
+  h += '<div class="choices">' + view.choices.map((c, i) =>
+       `<button class="choice" data-i="${i}"><strong>${T(c.label)}</strong>${c.note ? `<small>${T(c.note)}</small>` : ''}</button>`).join('') + '</div>';
+  el.innerHTML = h;
+  app.replaceChildren(el);
+  window.scrollTo({top:0});
+  let picked = false;
+  // ยังไม่ได้เลือก: ย้อนไปฉากก่อนหน้า · เลือกแล้ว (เห็นผลอยู่): ย้อนมาเลือกฉากนี้ใหม่
+  el.querySelector('#back')?.addEventListener('click', () => goBack(picked));
+  el.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => {
+    el.querySelectorAll('.choice').forEach(b => b.disabled = true);
+    btn.classList.add('picked');
+    picked = true;
+    if (!el.querySelector('#back')) el.insertAdjacentHTML('afterbegin', backBtn()), el.querySelector('#back').addEventListener('click', () => goBack(true));
+    st.fb = null; st.feed = null;
+    const next = view.choices[+btn.dataset.i].act();
+    hud();
+    // ลำดับหลังเลือก: ผลของการตัดสินใจ → ฟีดชีวิต (ถ้ามี) → ฉากถัดไป
+    // tok กันไม่ให้คำสั่งที่ค้างอยู่ทำงาน ถ้าผู้เล่นกดย้อนกลับไปแล้ว
+    const go = () => { if (tok !== navToken) return; const f = st.feed; st.feed = null; f ? runFeed(f, next) : route(next); };
+    if (st.fb){
+      const fb = document.createElement('div');
+      fb.className = 'fb';
+      fb.innerHTML = `<p>${T(st.fb)}</p><button class="go">ต่อไป</button>`;
+      el.appendChild(fb);
+      fb.querySelector('.go').addEventListener('click', go);
+      fb.querySelector('.go').focus();
+    } else setTimeout(go, 300);
+  }));
+}
+
+/* ---------------- ฟีดชีวิตอัตโนมัติ ----------------
+   แต่ละบรรทัด: เดินเวลา dm เดือน → ปรับค่าสถานะ → แสดงบรรทัด
+   บรรทัด {lifeAt} จะสุ่มเหตุการณ์ชีวิตตอนที่ถึงคิว (เพื่อให้ตรงกับเดือนในปฏิทินจริง) */
+function runFeed(spec, next){
+  const tok = ++navToken;
+  setMusic(musicFor('feed'));
+  const f = spec.decline ? declineFeed(spec.decline) : spec;
+  const lines = f.lines, imgs = f.imgs || ['calendar'];
+  let i = 0, timer = null, done = false;
+  const el = document.createElement('section');
+  el.className = 'scene';
+  el.innerHTML = `${headHTML('เวลาผ่านไป', '')}<figure class="slide">${figHTML(imgs[0])}</figure>
+    <ol class="feed"></ol><div class="feedbar"><button class="go ghost" id="nx">แตะเพื่อข้าม</button>${hist.length ? backBtn() : ''}</div>`;
+  app.replaceChildren(el);
+  window.scrollTo({top:0});
+  hud();
+  const list = el.querySelector('.feed'), fig = el.querySelector('.slide'), btn = el.querySelector('#nx');
+  el.querySelector('#back')?.addEventListener('click', () => { clearTimeout(timer); goBack(true); });
+  const showOne = () => {
+    if (tok !== navToken) return;
+    let L = lines[i];
+    if (L.lifeAt) L = {...lifeLine(L.lifeAt, curCal(), L.dm), extra:L.extra};
+    if (spec.pre) st.preCal += L.dm; else st.month += L.dm;
+    const p0 = st.phys, q0 = st.qol, h0 = st.hosp;
+    // ค่าสึกหรอใส่เฉพาะบรรทัดที่ไม่ใช่เรื่องดี เรื่องดีจะได้ไม่ขึ้นป้ายคุณภาพชีวิตติดลบ
+    if (lines[i].wear && (L.d?.qol || 0) <= 0) L.wear = true;
+    chg({...(L.d || {}), ...(L.extra ? {phys:(L.d?.phys || 0) + L.extra.phys} : {}), ...(L.wear ? {qol:(L.d?.qol || 0) + TUNE.qolWearDecline} : {})}, true);
+    // ช่วงโรคลุกลาม: ไม่ว่าเริ่มด้วยแรงกายเท่าไร ให้ค่อยๆ ทรุดลงจนเหลือราว 8–14 ตอนจบช่วงที่ 3
+    // ถ้าเหตุการณ์ลดไม่ถึงเป้าของจุดนั้น จะลดส่วนที่ขาดเพิ่ม (คุณภาพชีวิตลดตาม 20% เหมือนกฎปกติ)
+    if (spec.decline){
+      if (st.declineStart == null){ st.declineStart = p0; st.declineEnd = 8 + Math.floor(R() * 7); }
+      const prog = (spec.decline - 1 + (i + 1) / lines.length) / 3;
+      const goal = Math.round(st.declineStart - (st.declineStart - st.declineEnd) * prog);
+      if (st.phys > goal) st.phys = goal;
+    }
+    const out = [];
+    if (st.phys !== p0) out.push(['แรงกาย', st.phys - p0]);
+    if (st.qol !== q0) out.push(['คุณภาพชีวิต', st.qol - q0]);
+    if (st.hosp !== h0) out.push(['นอนโรงพยาบาล', st.hosp - h0, 'วัน']);
+    if (L.se) st.seList.push(L.se);
+    if (L.kind === 'life' && L.mem && !spec.pre){ st.mem++; log(L.t, true); out.push(['ความทรงจำดีๆ', 1]); }
+    if (L.log) log(L.t);
+    const li = document.createElement('li');
+    li.className = L.kind || 'life';
+    li.innerHTML = `<time>${calLabel(curCal())}</time><div class="txt"><span>${T(L.t)}</span>${out.map(chipHTML).join('')}</div>`;
+    list.appendChild(li);
+    const k = Math.min(Math.floor(i / 2), imgs.length - 1);
+    if (fig.dataset.k !== String(k)){ fig.dataset.k = k; fig.innerHTML = figHTML(imgs[k]); }
+    i++;
+    hud();
+    el.querySelector('.bigwhen').outerHTML = bigWhenHTML();
+  };
+  const finish = () => { done = true; clearTimeout(timer); btn.textContent = 'ไปต่อ'; btn.classList.remove('ghost'); };
+  const tick = () => { if (tok !== navToken) return; if (i < lines.length){ showOne(); timer = setTimeout(tick, TUNE.feedMs); } else finish(); };
+  btn.addEventListener('click', () => {
+    if (tok !== navToken) return;
+    if (done) return route(next);
+    clearTimeout(timer);
+    while (i < lines.length) showOne();
+    finish();
+  });
+  tick();
+}
+
+/* ---------------- หน้าสรุป ---------------- */
+function renderSummary(){
+  ++navToken; hist = [];                 // หน้าสรุปย้อนกลับไม่ได้แล้ว
+  setMusic(5);
+  document.getElementById('hud').hidden = true;
+  const total = Math.max(1, Math.round(st.month * 30));
+  const hosp = Math.min(st.hosp, total), home = total - hosp;
+  const where = st.ending === 'icu' ? 'ในไอซียู' : st.place === 'home' ? 'ที่บ้าน' : 'ที่โรงพยาบาล';
+  const line = st.ending === 'icu' ? `{ชื่อ} จากไปในไอซียู หลังอยู่ในไอซียู ${st.icuDays} วัน` : `{ชื่อ} จากไป${where} มี{ผู้แทน}อยู่ข้างๆ`;
+  const alts = [];
+  if (!st.pc) alts.push(['ถ้าได้พบทีมดูแลแบบประคับประคองตั้งแต่ต้น', 'อาการเหนื่อยและปวดถูกดูแลเร็วขึ้น ในงานวิจัย ผู้ป่วยกลุ่มนี้มีคุณภาพชีวิตดีกว่าและอยู่ได้นานขึ้นราว 2–3 เดือน']);
+  if (!st.acp) alts.push(['ถ้าได้คุยเรื่องหนังสือแสดงเจตนาไว้ก่อน', '{ผู้แทน}ไม่ต้องเดาใจ {ชื่อ} ในคืนที่ต้องตัดสินใจ และรู้ว่ากำลังทำตามสิ่งที่ {ชื่อ} ต้องการ']);
+  alts.push(st.ending === 'icu'
+    ? ['ถ้าเลือกดูแลแบบประคับประคองในคืนสุดท้าย', 'เวลาที่เหลืออาจสั้นลงไม่กี่วัน แต่ได้อยู่กับคนที่รักโดยไม่มีท่อและเสียงเครื่องมือ']
+    : ['ถ้าเลือกใส่ท่อช่วยหายใจ', 'อาจยืดเวลาได้หลายวันถึงสองสัปดาห์ ส่วนใหญ่อยู่ในไอซียูภายใต้ยานอนหลับ และโอกาสกลับบ้านต่ำมาก']);
+  alts.push(st.tx.length ? ['ถ้าเลือกไม่รับยาตั้งแต่ต้น', 'อยู่ได้ราว 4–6 เดือน ไม่มีผลข้างเคียงจากยา แต่อาการของโรคมาเร็วกว่า']
+                         : ['ถ้าได้ตรวจชิ้นเนื้อและรับการรักษา', 'อยู่ได้ราว 10 เดือนถึง 3 ปี แล้วแต่ชนิดของมะเร็ง แลกกับผลข้างเคียงและการมาโรงพยาบาล']);
+  const mems = st.log.filter(e => e.life).slice(-8);
+  const el = document.createElement('article');
+  el.className = 'scene';
+  el.innerHTML = `
+    <p class="chapter">สรุปชีวิต</p>
+    <div class="section mems"><h2>ความทรงจำดีๆ ของ ${esc(st.name)}</h2>${mems.length
+      ? `<ul>${mems.map(e => `<li><time>${whenLabel(e.m)}</time><span>${T(e.t)}</span></li>`).join('')}</ul>`
+      : `<p class="note">ช่วงเวลาส่วนใหญ่หมดไปกับการรักษาและอาการของโรค ลองเล่นอีกครั้งแล้วเลือกทางที่ต่างไป</p>`}</div>
+    <figure>${ILL[st.ending === 'icu' ? 'icu' : st.place === 'home' ? 'home' : 'ward']()}</figure>
+    <h2>${T(line)}</h2>
+    <div class="stats">
+      <div class="stat"><span>อยู่ได้หลังวินิจฉัย</span><b>${fmtM(st.month)}</b></div>
+      <div class="stat"><span>ความทรงจำดีๆ</span><b>${st.mem} เรื่อง</b></div>
+      <div class="stat"><span>วันที่อยู่บ้าน</span><b>${home} วัน</b></div>
+      <div class="stat"><span>วันที่อยู่โรงพยาบาล</span><b>${hosp} วัน</b></div>
+    </div>
+    <div class="section">
+      <div class="split" role="img" aria-label="สัดส่วนวันที่อยู่บ้านต่อโรงพยาบาล"><i style="width:${home / total * 100}%"></i><em style="width:${hosp / total * 100}%"></em></div>
+      <div class="legend"><span>บ้าน</span><span class="h">โรงพยาบาล</span></div>
+    </div>
+    <div class="section"><h3>การรักษาที่ได้รับ</h3><p>${st.tx.length ? st.tx.join(' → ') : 'ไม่ได้รับการรักษาเฉพาะโรค ดูแลตามอาการ'}</p>
+      ${st.seList.length ? `<p class="note">ผลข้างเคียงที่เจอ: ${[...new Set(st.seList)].join(', ')}</p>` : ''}</div>
+    <div class="section"><h3>เส้นทางชีวิต</h3><ol class="feed">${st.log.map(e =>
+      `<li class="${e.life ? 'life' : 'med'}"><time>${whenLabel(e.m)}</time><div class="txt"><span>${T(e.t)}</span></div></li>`).join('')}</ol></div>
+    <div class="section"><h3>ถ้าเลือกอีกทาง</h3><div class="alts">${alts.slice(0, 3).map(([a, b]) => `<div class="alt"><b>${T(a)}</b><p>${T(b)}</p></div>`).join('')}</div></div>
+    <p class="closing">${CLOSING}</p>
+    <div class="section share"><h3>เก็บภาพสรุป</h3>
+      <div class="shots"><figure><img id="shot1" alt="ภาพสรุปชีวิต"><button class="go" id="save1" hidden>บันทึกภาพสรุป</button></figure>
+        <figure><img id="shot2" alt="ภาพเส้นทางชีวิต"><button class="go" id="save2" hidden>บันทึกภาพเส้นทางชีวิต</button></figure></div>
+      <p class="note" id="savehint">กำลังสร้างภาพ…</p></div>
+    <button class="go" id="again">เล่นอีกครั้ง</button>`;
+  app.replaceChildren(el);
+  window.scrollTo({top:0});
+  el.querySelector('#again').addEventListener('click', () => { st = null; setMusic(1, true); startScreen(); });
+  makeShareImages({home, hosp, total, line});
+}
+
+/* ---------------- ภาพสรุปสำหรับส่งต่อ (Facebook / LINE) ----------------
+   วาดลง canvas ในเครื่องผู้เล่นทั้งหมด ไม่มีการอัปโหลดไปที่ใด
+   ปุ่มบันทึกใช้ความสามารถ downloads ของ artifact (ผู้เล่นต้องกดยืนยันเองทุกครั้ง)
+   ถ้าใช้ไม่ได้ ผู้เล่นยังกดค้างที่ภาพเพื่อบันทึกได้ */
+const CLOSING = 'มะเร็งระยะแพร่กระจายรักษาให้หายขาดไม่ได้ แต่ทุกคนเลือกได้ว่าจะใช้เวลาที่เหลืออย่างไร สำหรับบางคน การได้รักษาจนถึงที่สุดคือความสบายใจ สำหรับบางคน การได้กลับไปนอนที่บ้านคือสิ่งที่มีค่าที่สุด ไม่มีทางเลือกไหนถูกหรือผิด ตัวเลขในเกมเป็นเพียงการจำลอง ชีวิตจริงมีปัจจัยอื่นๆ อีกมาก และชีวิตของแต่ละคนมีความหมายในแบบของตัวเอง เราสามารถเริ่มต้นคุยกับคนที่คุณรักเรื่องนี้ตั้งแต่วันนี้';
+const W = 1080, H = 1350;
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+// ข้อความแบบไม่มี HTML สำหรับ canvas (canvas วาดเป็นตัวอักษรล้วน จึงไม่ต้อง escape)
+const P = s => String(s).replaceAll('{ชื่อ}', st.name).replaceAll('{ผู้ดูแล}', carerRaw()).replaceAll('{ผู้แทน}', st.proxy || carerRaw())
+  .replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, '$1').replace(/<[^>]+>/g, '');
+// ตัดบรรทัดภาษาไทย: ภาษาไทยไม่มีเว้นวรรคระหว่างคำ จึงใช้ Intl.Segmenter แยกคำ
+function wrapText(ctx, text, maxW){
+  const parts = window.Intl && Intl.Segmenter ? [...new Intl.Segmenter('th', {granularity:'word'}).segment(text)].map(x => x.segment) : [...text];
+  const lines = []; let cur = '';
+  for (const w of parts){
+    if (cur && ctx.measureText(cur + w).width > maxW){ lines.push(cur); cur = w.trimStart(); }
+    else cur += w;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function para(ctx, text, x, y, maxW, lh){ wrapText(ctx, text, maxW).forEach((l, i) => ctx.fillText(l, x, y + i * lh)); return y + wrapText(ctx, text, maxW).length * lh; }
+function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+// ภาพลายเส้นใช้ class จาก CSS ของหน้า พอแยกออกมาเป็นไฟล์ภาพต้องใส่สีจริงลงไปเอง
+async function illImage(key){
+  const c = n => cssv(n);
+  const style = `<style>.s{fill:none;stroke:${c('--ink')};stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.bgf{fill:${c('--bg')}}.sf{fill:${c('--surface')}}
+    .soft{fill:${c('--peach-soft')}}.sagef{fill:${c('--mint-soft')}}.glass{fill:${c('--glass')}}.light{fill:${c('--peach')};opacity:.14}
+    .tube{fill:none;stroke:${c('--mint-ink')};stroke-width:2;stroke-linecap:round}.mon{fill:none;stroke:${c('--mint-ink')};stroke-width:1.6}
+    .acc,.sand{fill:none;stroke:${c('--peach')};stroke-width:2;stroke-linecap:round}.dot{fill:${c('--line')}}</style>`;
+  const svg = ILL[key]().replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="570" style="color:${c('--ink')}" `).replace(/(<svg[^>]*>)/, `$1${style}`);
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await img.decode();
+  return img;
+}
+function frame(ctx){
+  ctx.fillStyle = cssv('--bg'); ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = cssv('--surface'); rrect(ctx, 40, 40, W - 80, H - 80, 36); ctx.fill();
+  ctx.fillStyle = cssv('--muted'); ctx.font = '500 30px Trirong, serif'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('วางแผนการเป็นมะเร็งระยะท้าย', 90, 110);
+  ctx.fillText('เกมจำลองเส้นทางชีวิต · palliative care', 90, H - 80);
+}
+async function drawCard1(d){
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+  frame(ctx);
+  const ill = await illImage(st.ending === 'icu' ? 'icu' : st.place === 'home' ? 'home' : 'ward');
+  ctx.drawImage(ill, 120, 130, 840, 499);
+  ctx.fillStyle = cssv('--ink'); ctx.font = '600 50px Trirong, serif';
+  let y = para(ctx, P(d.line), 90, 700, 900, 66);
+  const tiles = [['อยู่ได้หลังวินิจฉัย', fmtM(st.month)], ['ความทรงจำดีๆ', st.mem + ' เรื่อง'], ['วันที่อยู่บ้าน', d.home + ' วัน'], ['วันที่อยู่โรงพยาบาล', d.hosp + ' วัน']];
+  y += 20;
+  tiles.forEach(([k, v], i) => {
+    const x = 90 + (i % 2) * 460, ty = y + Math.floor(i / 2) * 150;
+    ctx.fillStyle = cssv('--bg'); rrect(ctx, x, ty, 440, 130, 22); ctx.fill();
+    ctx.fillStyle = cssv('--muted'); ctx.font = '400 28px Trirong, serif'; ctx.fillText(k, x + 28, ty + 48);
+    ctx.fillStyle = cssv('--ink'); ctx.font = '600 44px Trirong, serif'; ctx.fillText(v, x + 28, ty + 105);
+  });
+  y += 320;
+  const bw = 900, hw = Math.round(bw * d.home / d.total);
+  ctx.fillStyle = cssv('--rose'); rrect(ctx, 90, y, bw, 22, 11); ctx.fill();
+  ctx.fillStyle = cssv('--mint'); rrect(ctx, 90, y, Math.max(hw, 22), 22, 11); ctx.fill();
+  ctx.fillStyle = cssv('--muted'); ctx.font = '400 26px Trirong, serif';
+  ctx.fillText('● บ้าน', 90, y + 62); ctx.fillStyle = cssv('--rose'); ctx.fillText('● โรงพยาบาล', 230, y + 62);
+  return cv;
+}
+async function drawCard2(){
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+  frame(ctx);
+  ctx.fillStyle = cssv('--ink'); ctx.font = '600 54px Trirong, serif';
+  ctx.fillText('เส้นทางชีวิตของ ' + st.name, 90, 200);
+  ctx.font = '400 30px Trirong, serif';
+  const closeLines = wrapText(ctx, CLOSING, 860), closeLh = 44;
+  const closeTop = H - 120 - closeLines.length * closeLh;
+  let rows = st.log;
+  if (rows.length > 16) rows = [...rows.slice(0, 8), null, ...rows.slice(-7)];
+  let y = 280;
+  for (const r of rows){
+    if (y > closeTop - 70) break;
+    if (!r){ ctx.fillStyle = cssv('--muted'); ctx.font = '400 30px Trirong, serif'; ctx.fillText('⋯', 250, y); y += 50; continue; }
+    ctx.fillStyle = r.life ? cssv('--mint') : cssv('--peach');
+    ctx.beginPath(); ctx.arc(98, y - 10, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = cssv('--muted'); ctx.font = '400 28px Trirong, serif'; ctx.fillText(whenLabel(r.m), 120, y);
+    ctx.fillStyle = cssv('--ink'); ctx.font = '400 30px Trirong, serif';
+    y = para(ctx, P(r.t), 300, y, 690, 42) + 18;
+  }
+  ctx.fillStyle = cssv('--peach'); ctx.fillRect(90, closeTop - 34, 6, closeLines.length * closeLh + 4);
+  ctx.fillStyle = cssv('--ink'); ctx.font = '400 30px Trirong, serif';
+  closeLines.forEach((l, i) => ctx.fillText(l, 120, closeTop + i * closeLh));
+  return cv;
+}
+async function makeShareImages(d){
+  const hint = document.getElementById('savehint');
+  try {
+    await document.fonts.ready;
+    const cards = [await drawCard1(d), await drawCard2()];
+    const blobs = await Promise.all(cards.map(c => new Promise(r => c.toBlob(r, 'image/png'))));
+    if (!document.getElementById('shot1')) return;          // ผู้เล่นกดเล่นใหม่ไปแล้ว
+    blobs.forEach((b, i) => { document.getElementById('shot' + (i + 1)).src = URL.createObjectURL(b); });
+    const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+    if (!dl){
+      // นอก claude.ai (เช่น วางบน Vercel) ใช้ลิงก์ดาวน์โหลดปกติได้
+      hint.textContent = 'ภาพสร้างในเครื่องนี้ ไม่ถูกส่งไปที่ใด บนมือถือกดค้างที่ภาพเพื่อบันทึกได้เช่นกัน';
+      ['สรุปชีวิต.png', 'เส้นทางชีวิต.png'].forEach((name, k) => {
+        const b = document.getElementById('save' + (k + 1));
+        b.hidden = false;
+        b.addEventListener('click', () => {
+          const a = document.createElement('a');
+          a.href = document.getElementById('shot' + (k + 1)).src; a.download = name;
+          document.body.appendChild(a); a.click(); a.remove();
+        });
+      });
+      return;
+    }
+    hint.textContent = 'ภาพสร้างในเครื่องนี้ ไม่ถูกส่งไปที่ใด';
+    const names = ['สรุปชีวิต.png', 'เส้นทางชีวิต.png'];
+    [1, 2].forEach(i => {
+      const b = document.getElementById('save' + i);
+      b.hidden = false;
+      b.addEventListener('click', async () => {
+        try { await dl.save({filename:names[i - 1], data:blobs[i - 1]}); b.textContent = 'บันทึกแล้ว'; }
+        catch (e) {
+          if (e && e.code === 'declined') return;
+          if (e && e.code === 'rate_limited'){ hint.textContent = 'มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้งในอีกสักครู่'; return; }
+          b.hidden = true; hint.textContent = 'บันทึกจากปุ่มไม่ได้ในหน้านี้ กดค้างที่ภาพเพื่อบันทึกแทน';
+        }
+      });
+    });
+  } catch (e) {
+    if (hint) hint.textContent = 'สร้างภาพไม่สำเร็จ แคปหน้าจอแทนได้';
+  }
+}
+
+/* ---------------- หน้าเริ่ม + ฟอร์ม ---------------- */
+function startScreen(){
+  document.getElementById('hud').hidden = true;
+  app.innerHTML = `<section class="start">
+    <figure>${ILL.hourglass()}</figure>
+    <h1>วางแผนการเป็นมะเร็งระยะท้าย</h1>
+    <div class="lede"><p>มีคนไทยหลายคนได้ยินคำว่า "มะเร็งปอด" เป็นครั้งแรกทุกวัน</p><p>วันนี้ คุณจะเป็นหนึ่งในนั้น</p>
+      <p>คุณเลือกได้ว่าจะรักษาอย่างไร แต่เลือกไม่ได้ว่าโรคจะตอบสนองอย่างไร เหมือนชีวิตจริง</p></div>
+    <p class="goal">เกมนี้ไม่มีแพ้ชนะ ร่างกายอาจแย่ลงตามโรค แต่ลองดูว่าคุณจะเก็บ<b>ความทรงจำดีๆ</b>ได้มากแค่ไหน</p>
+    <button class="go" id="begin">เริ่ม</button>
+  </section>`;
+  window.scrollTo({top:0});
+  document.getElementById('begin').addEventListener('click', formScreen);
+}
+const chips = (name, opts) => `<div class="chips">${opts.map(([v, l]) =>
+  `<input type="radio" name="${name}" id="${name}-${v}" value="${v}" required><label for="${name}-${v}">${l}</label>`).join('')}</div>`;
+function formScreen(){
+  app.innerHTML = `<section class="scene">
+    <p class="chapter">ก่อนเริ่ม</p><h2>บอกเราเกี่ยวกับตัวคุณ</h2>
+    <form id="who">
+      <div class="field"><label for="f-name"><b>ชื่อเล่น</b></label><input type="text" id="f-name" maxlength="20" autocomplete="off" placeholder="เช่น ต้น"></div>
+      <fieldset><legend>เพศ</legend>${chips('sex', [['m','ชาย'],['f','หญิง'],['x','ไม่ระบุ']])}</fieldset>
+      <fieldset><legend>อายุ</legend>${chips('age', [['u40','ต่ำกว่า 40'],['40','40–59'],['60','60–74'],['75','75 ขึ้นไป']])}</fieldset>
+      <fieldset><legend>ชีวิตตอนนี้</legend>${chips('life', [['job','ทำงานประจำ'],['biz','ค้าขาย / ธุรกิจตัวเอง'],['retired','เกษียณ'],['family','ดูแลครอบครัว'],['study','เรียน'],['other','อื่นๆ']])}
+        <input type="text" id="life-other" maxlength="30" autocomplete="off" placeholder="เช่น ขับแท็กซี่, ปลูกผัก" aria-label="ชีวิตตอนนี้ อื่นๆ" hidden></fieldset>
+      <fieldset><legend>ใครอยู่ข้างคุณ</legend>${chips('carer', [['partner','คู่ชีวิต'],['child','ลูก'],['family','พ่อแม่หรือพี่น้อง'],['alone','อยู่คนเดียว'],['other','อื่นๆ']])}
+        <input type="text" id="carer-other" maxlength="20" autocomplete="off" placeholder="เช่น หลาน, เพื่อนบ้าน" aria-label="ใครอยู่ข้างคุณ อื่นๆ" hidden></fieldset>
+      <p class="privacy">ข้อมูลนี้ใช้ในเกมเท่านั้น ไม่ถูกบันทึกหรือส่งไปที่ใด</p>
+      <button class="go" type="submit">เริ่มชีวิต</button>
+    </form></section>`;
+  window.scrollTo({top:0});
+  const form = document.getElementById('who');
+  form.addEventListener('change', e => {
+    if (e.target.name !== 'life' && e.target.name !== 'carer') return;
+    const box = document.getElementById(e.target.name + '-other');
+    box.hidden = e.target.value !== 'other'; box.required = !box.hidden;
+    if (!box.hidden) box.focus();
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(form), txt = id => document.getElementById(id).value.trim();
+    lastHud = null; hist = [];
+    st = newState({name:txt('f-name'), sex:fd.get('sex'), age:fd.get('age'), life:fd.get('life'), lifeOther:txt('life-other'),
+                   carer:fd.get('carer'), carerOther:txt('carer-other')});
+    route('intro');
+  });
+}
+
+/* ---------------- คำอธิบายศัพท์ (แตะ หรือชี้เมาส์) ----------------
+   ใช้ capture phase เพื่อให้แตะคำศัพท์ในปุ่มตัวเลือกได้ โดยไม่กดปุ่มนั้น */
+const tip = document.getElementById('tip');
+let tipFor = null, hideTimer = null;
+// วางกล่องคำอธิบายใต้คำศัพท์ (ถ้าที่ด้านล่างไม่พอ ย้ายไปไว้ด้านบน) และไม่ให้ล้นขอบจอซ้ายขวา
+function placeTip(el){
+  const r = el.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const w = Math.min(300, vw - 24);
+  tip.style.width = w + 'px';
+  tip.style.left = Math.max(12, Math.min(r.left + r.width / 2 - w / 2, vw - w - 12)) + 'px';
+  const h = tip.offsetHeight, below = r.bottom + 8;
+  const above = below + h > vh - 12 && r.top - 8 - h > 12;
+  tip.style.top = (above ? r.top - 8 - h : below) + 'px';
+  tip.dataset.side = above ? 'above' : 'below';
+}
+function showTip(el){
+  clearTimeout(hideTimer);
+  const k = el.dataset.k;
+  tipFor = el;
+  tip.innerHTML = `<button class="tip-x" aria-label="ปิดคำอธิบาย">×</button><b>${k}</b><span>${GLOSS[k]}</span>`;
+  tip.hidden = false;
+  placeTip(el);
+}
+function hideTip(){ tip.hidden = true; tipFor = null; }
+// ใช้ capture phase เพื่อให้แตะคำศัพท์ในปุ่มตัวเลือกได้ โดยไม่กดปุ่มนั้น
+document.addEventListener('click', e => {
+  if (e.target.closest('.tip-x')){ hideTip(); return; }
+  const t = e.target.closest('.term');
+  if (t){ e.preventDefault(); e.stopPropagation(); (tipFor === t && !tip.hidden) ? hideTip() : showTip(t); }
+  else if (!e.target.closest('#tip')) hideTip();
+}, true);
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('.term');
+  if (t && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); showTip(t); }
+  if (e.key === 'Escape') hideTip();
+});
+// เมาส์: ชี้แล้วขึ้น เลื่อนออกแล้วหาย (เว้นจังหวะให้เลื่อนเมาส์เข้าไปในกล่องได้) — มือถือใช้การแตะแทน
+document.addEventListener('pointerover', e => {
+  if (e.pointerType !== 'mouse') return;
+  const t = e.target.closest('.term');
+  if (t) showTip(t); else if (e.target.closest('#tip')) clearTimeout(hideTimer);
+});
+document.addEventListener('pointerout', e => {
+  if (e.pointerType !== 'mouse') return;
+  if (e.target.closest('.term') || e.target.closest('#tip')){ clearTimeout(hideTimer); hideTimer = setTimeout(hideTip, 300); }
+});
+window.addEventListener('scroll', () => { if (!tip.hidden && tipFor) placeTip(tipFor); }, {passive:true});
+window.addEventListener('resize', () => { if (!tip.hidden && tipFor) placeTip(tipFor); });
+
+/* ---------------- ภาพลายเส้น ----------------
+   เวอร์ชันถัดไปที่ใช้ภาพวาดเอง: ในรายการ imgs ใช้ 'img:ชื่อไฟล์.png' แทนชื่อภาพได้เลย */
+const ILL = {
+hourglass:() => `<svg class="ill" viewBox="0 0 320 150" role="img" aria-label="นาฬิกาทราย">
+  <line class="s" x1="126" y1="18" x2="194" y2="18"/><line class="s" x1="126" y1="132" x2="194" y2="132"/>
+  <path class="soft" d="M146 34 Q160 40 174 34 C172 52 164 62 160 70 C156 62 148 52 146 34 Z"/>
+  <path class="soft" d="M142 132 Q160 104 178 132 Z"/>
+  <line class="sand" x1="160" y1="72" x2="160" y2="124"/>
+  <path class="s" d="M138 18 C138 52 156 62 157 75 C156 88 138 98 138 132 M182 18 C182 52 164 62 163 75 C164 88 182 98 182 132"/>
+  <line class="s" x1="30" y1="132" x2="110" y2="132"/><line class="s" x1="210" y1="132" x2="290" y2="132"/>
+  <circle class="sagef" cx="60" cy="110" r="14"/><circle class="sagef" cx="262" cy="104" r="20"/>
+</svg>`,
+home:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ผู้ป่วยนอนบนเตียงที่บ้าน มีสายออกซิเจนทางจมูก คนในครอบครัวนั่งจับมือ">
+  <polygon class="light" points="205,28 281,28 236,172 118,172"/>
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <rect class="s" x="205" y="28" width="76" height="58" rx="3"/><line class="s" x1="243" y1="28" x2="243" y2="86"/>
+  <circle class="sagef" cx="226" cy="60" r="13"/><circle class="sagef" cx="263" cy="64" r="10"/>
+  <rect class="s" x="34" y="96" width="8" height="76" rx="2"/>
+  <rect class="s sf" x="42" y="122" width="150" height="20" rx="4"/>
+  <line class="s" x1="48" y1="142" x2="48" y2="172"/><line class="s" x1="186" y1="142" x2="186" y2="172"/>
+  <ellipse class="s sf" cx="66" cy="117" rx="17" ry="6"/>
+  <path class="s soft" d="M82 118 Q122 102 190 114 L190 124 L82 124 Z"/>
+  <circle class="s sf" cx="70" cy="106" r="10"/>
+  <rect class="s" x="12" y="128" width="13" height="42" rx="6"/><line class="s" x1="18.5" y1="128" x2="18.5" y2="122"/>
+  <path class="tube" d="M79 105 C74 96 61 95 58 104 C53 116 30 112 19 122"/>
+  <path class="s" d="M212 172 V142 H244 V172 M244 142 V112"/>
+  <circle class="s sf" cx="228" cy="96" r="10"/>
+  <path class="s" d="M228 106 Q232 122 230 142 M229 116 Q206 120 188 116 M230 142 H214"/>
+</svg>`,
+ward:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ผู้ป่วยในห้องพักโรงพยาบาล มีสายออกซิเจนทางจมูก ครอบครัวอยู่รอบเตียง">
+  <polygon class="light" points="190,24 250,24 220,172 130,172"/>
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <line class="s" x1="4" y1="12" x2="40" y2="12"/>
+  <path class="s" d="M10 12 Q16 40 10 66 Q4 92 10 118 Q16 144 10 168"/>
+  <path class="s" d="M24 12 Q30 40 24 66 Q18 92 24 118 Q30 144 24 168"/>
+  <rect class="s" x="190" y="24" width="60" height="48" rx="3"/><line class="s" x1="220" y1="24" x2="220" y2="72"/>
+  <rect class="s" x="48" y="64" width="14" height="10" rx="2"/>
+  <rect class="s" x="40" y="96" width="8" height="76" rx="2"/>
+  <rect class="s sf" x="48" y="122" width="140" height="20" rx="4"/>
+  <line class="s" x1="54" y1="142" x2="54" y2="172"/><line class="s" x1="182" y1="142" x2="182" y2="172"/>
+  <path class="s" d="M90 106 H170 M98 106 V122 M162 106 V122"/>
+  <ellipse class="s sf" cx="72" cy="117" rx="17" ry="6"/>
+  <path class="s soft" d="M88 118 Q124 102 186 114 L186 124 L88 124 Z"/>
+  <circle class="s sf" cx="76" cy="106" r="10"/>
+  <path class="tube" d="M85 105 C80 96 68 94 64 102 C60 92 58 82 56 74"/>
+  <path class="s" d="M204 172 V146 H232 V172 M232 146 V118"/>
+  <circle class="s sf" cx="218" cy="100" r="10"/>
+  <path class="s" d="M218 110 Q222 126 220 146 M219 120 Q200 122 184 116 M220 146 H206"/>
+  <circle class="s sf" cx="258" cy="80" r="10"/>
+  <path class="s" d="M258 90 V138 M258 138 L250 172 M258 138 L266 172 M258 104 L244 118"/>
+  <rect class="s" x="276" y="136" width="34" height="36" rx="3"/>
+  <path class="s" d="M287 136 Q283 124 289 118 H297 Q303 124 299 136"/>
+  <circle class="soft" cx="287" cy="108" r="6"/><circle class="sagef" cx="298" cy="104" r="6"/><circle class="soft" cx="293" cy="112" r="5"/>
+</svg>`,
+icu:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ผู้ป่วยใส่ท่อช่วยหายใจในไอซียู ญาติยืนมองผ่านกระจก">
+  <polygon class="light" points="62,15 168,15 196,124 34,124"/>
+  <rect class="s" x="62" y="10" width="106" height="5" rx="2"/>
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <rect class="glass" x="236" y="18" width="10" height="154"/>
+  <line class="s" x1="236" y1="18" x2="236" y2="172"/><line class="s" x1="246" y1="18" x2="246" y2="172"/>
+  <line class="s" x1="22" y1="102" x2="22" y2="172"/>
+  <rect class="s sf" x="6" y="62" width="34" height="40" rx="4"/>
+  <rect class="s" x="11" y="68" width="24" height="13" rx="2"/>
+  <polyline class="mon" points="13,77 18,77 21,71 25,77 33,77"/>
+  <rect class="s sf" x="140" y="28" width="62" height="40" rx="4"/>
+  <polyline class="mon" points="146,50 158,50 162,39 166,58 170,50 196,50"/>
+  <line class="s" x1="171" y1="68" x2="171" y2="96"/>
+  <line class="s" x1="212" y1="38" x2="212" y2="172"/><rect class="s sf" x="204" y="40" width="16" height="22" rx="4"/>
+  <path class="tube" d="M212 62 C212 90 196 108 180 118"/>
+  <rect class="s" x="48" y="96" width="8" height="76" rx="2"/>
+  <rect class="s sf" x="56" y="124" width="140" height="20" rx="4"/>
+  <line class="s" x1="62" y1="144" x2="62" y2="172"/><line class="s" x1="190" y1="144" x2="190" y2="172"/>
+  <path class="s" d="M100 108 H186 M108 108 V124 M178 108 V124"/>
+  <ellipse class="s sf" cx="78" cy="119" rx="17" ry="6"/>
+  <path class="s soft" d="M94 120 Q130 104 194 116 L194 126 L94 126 Z"/>
+  <circle class="s sf" cx="82" cy="108" r="10"/>
+  <path class="tube" d="M90 110 C98 96 70 82 40 84"/>
+  <path class="tube" d="M90 112 C102 100 74 92 40 94"/>
+  <circle class="s sf" cx="278" cy="88" r="10"/>
+  <path class="s" d="M278 98 V138 M278 138 L270 172 M278 138 L286 172 M278 108 Q264 104 248 96"/>
+</svg>`,
+clinic:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ห้องรอตรวจ">
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <rect class="s sf" x="200" y="22" width="84" height="46" rx="4"/><text class="num" x="242" y="53" text-anchor="middle">021</text>
+  ${[30, 76, 122, 168].map(x => `<path class="s" d="M${x} 172 V142 H${x + 36} V172 M${x} 142 V112"/>`).join('')}
+  <circle class="s sf" cx="92" cy="96" r="10"/>
+  <path class="s" d="M92 106 Q88 124 94 142 M93 116 Q104 122 112 120 M94 142 H114 V172"/>
+  <rect class="soft" x="108" y="112" width="12" height="16" rx="1"/>
+</svg>`,
+phone:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="โทรศัพท์ที่กำลังสั่น">
+  <line class="s" x1="40" y1="160" x2="280" y2="160"/>
+  <rect class="s sf" x="132" y="34" width="56" height="112" rx="10"/>
+  <line class="s" x1="152" y1="44" x2="168" y2="44"/>
+  <rect class="soft" x="140" y="54" width="40" height="66" rx="3"/>
+  <circle class="s" cx="160" cy="132" r="5"/>
+  <path class="acc" d="M118 70 Q108 90 118 110 M106 62 Q92 90 106 118 M202 70 Q212 90 202 110 M214 62 Q228 90 214 118"/>
+</svg>`,
+calendar:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ปฏิทินที่ถูกพลิกผ่านไป">
+  <rect class="s sf" x="124" y="40" width="96" height="108" rx="6" transform="rotate(-7 172 94)"/>
+  <rect class="s sf" x="112" y="34" width="96" height="108" rx="6"/>
+  <rect class="soft" x="113" y="35" width="94" height="22" rx="5"/>
+  <line class="s" x1="136" y1="24" x2="136" y2="42"/><line class="s" x1="184" y1="24" x2="184" y2="42"/>
+  ${Array.from({length:30}, (_, k) => `<rect class="dot" x="${122 + (k % 6) * 13}" y="${66 + Math.floor(k / 6) * 14}" width="8" height="7" rx="1.5"/>`).join('')}
+  <path class="acc" d="M120 64 L198 136"/>
+</svg>`,
+road:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ถนนที่ทอดยาวไปยังภูเขา">
+  <circle class="soft" cx="236" cy="62" r="20"/>
+  <path class="s sagef" d="M8 102 L60 62 L96 90 L132 66 L172 102 Z"/>
+  <line class="s" x1="8" y1="102" x2="312" y2="102"/>
+  <path class="s" d="M50 180 L148 102 M270 180 L172 102"/>
+  <path class="acc" d="M160 108 V118 M160 130 V144 M160 158 V176"/>
+  <circle class="s sf" cx="210" cy="132" r="7"/><path class="s" d="M210 139 V162 M210 162 L204 178 M210 162 L216 178"/>
+  <circle class="s sf" cx="230" cy="130" r="7"/><path class="s" d="M230 137 V162 M230 162 L224 178 M230 162 L236 178 M214 148 L226 146"/>
+</svg>`,
+photo:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="รูปถ่ายหลายใบ">
+  <g transform="rotate(-8 110 100)"><rect class="s sf" x="70" y="48" width="82" height="96" rx="2"/><rect class="sagef" x="78" y="56" width="66" height="60"/><circle class="soft" cx="126" cy="72" r="8"/><path class="s" d="M78 116 L100 92 L116 106 L130 96 L144 116"/></g>
+  <g transform="rotate(7 214 96)"><rect class="s sf" x="172" y="44" width="82" height="96" rx="2"/><rect class="soft" x="180" y="52" width="66" height="60"/><circle class="s sf" cx="202" cy="86" r="8"/><circle class="s sf" cx="224" cy="84" r="8"/><path class="s" d="M196 112 Q202 98 208 112 M218 112 Q224 98 230 112"/></g>
+</svg>`,
+desk:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="ทำงานที่โต๊ะ">
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <path class="s" d="M90 120 H270 M100 120 V172 M260 120 V172"/>
+  <path class="soft" d="M163 86 H209 L203 116 H157 Z"/>
+  <path class="s" d="M150 120 L160 82 H214 L206 120"/>
+  <path class="s" d="M244 120 V88 L230 74"/><path class="s soft" d="M220 68 L240 64 L234 82 Z"/>
+  <rect class="s" x="222" y="106" width="12" height="14" rx="2"/>
+  <path class="s" d="M48 172 V128 H82 V172 M48 128 V96"/>
+  <circle class="s sf" cx="66" cy="82" r="10"/>
+  <path class="s" d="M66 92 Q70 108 68 128 M67 102 Q104 104 152 112 M68 128 H92 V172"/>
+</svg>`,
+scan:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="เครื่องสแกน">
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <circle class="s sagef" cx="206" cy="98" r="56"/><circle class="s bgf" cx="206" cy="98" r="26"/>
+  <path class="s" d="M182 152 L176 172 M230 152 L236 172"/>
+  <rect class="s sf" x="36" y="104" width="196" height="10" rx="3"/>
+  <path class="s" d="M70 114 V172 M120 114 V172"/>
+  <circle class="s sf" cx="58" cy="94" r="8"/>
+  <path class="s soft" d="M66 96 Q120 86 196 96 L196 104 L66 104 Z"/>
+</svg>`,
+meal:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="กินข้าวเย็นด้วยกันที่บ้าน">
+  <polygon class="light" points="146,52 174,52 236,122 84,122"/>
+  <path class="s" d="M160 8 V38"/><path class="s soft" d="M144 52 Q160 32 176 52 Z"/>
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <path class="s" d="M70 122 H250 M84 122 V172 M236 122 V172"/>
+  <path class="s soft" d="M116 112 Q128 126 140 112 Z"/><path class="s soft" d="M180 112 Q192 126 204 112 Z"/>
+  <ellipse class="s sagef" cx="160" cy="116" rx="14" ry="5"/>
+  <path class="s" d="M126 104 q-4 -8 0 -16 M192 104 q-4 -8 0 -16"/>
+  <path class="s" d="M24 172 V130 H54 V172 M24 130 V100"/>
+  <circle class="s sf" cx="44" cy="84" r="10"/><path class="s" d="M44 94 Q48 110 46 130 M45 104 Q80 108 116 110"/>
+  <path class="s" d="M296 172 V130 H266 V172 M296 130 V100"/>
+  <circle class="s sf" cx="276" cy="84" r="10"/><path class="s" d="M276 94 Q272 110 274 130 M275 104 Q240 108 204 110"/>
+</svg>`,
+sunset:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="นั่งดูพระอาทิตย์ตกด้วยกัน">
+  <path class="soft" d="M180 118 A40 40 0 0 1 260 118 Z"/>
+  <line class="s" x1="8" y1="118" x2="312" y2="118"/>
+  <path class="acc" d="M196 132 H244 M206 144 H234 M214 156 H226"/>
+  <path class="s" d="M44 172 V160 H156 V172 M40 160 H160"/>
+  <circle class="s sf" cx="80" cy="126" r="10"/><path class="s" d="M80 136 Q78 148 80 160"/>
+  <circle class="s sf" cx="118" cy="124" r="10"/><path class="s" d="M118 134 Q120 148 118 160 M84 144 Q100 134 114 140"/>
+</svg>`,
+chair:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="นั่งพักบนเก้าอี้ริมหน้าต่าง">
+  <polygon class="light" points="196,24 286,24 230,172 120,172"/>
+  <rect class="s" x="196" y="24" width="90" height="70" rx="3"/><line class="s" x1="241" y1="24" x2="241" y2="94"/>
+  <line class="s" x1="8" y1="172" x2="312" y2="172"/>
+  <path class="s sf" d="M80 120 V82 Q80 72 92 72 H138 Q150 72 150 82 V120"/>
+  <path class="s sf" d="M70 172 V130 Q70 120 80 120 H150 Q160 120 160 130 V172"/>
+  <circle class="s sf" cx="115" cy="92" r="10"/>
+  <path class="s" d="M115 102 V122"/>
+  <path class="s soft" d="M94 122 H140 V150 H94 Z"/>
+  <path class="s" d="M178 134 H214 M196 134 V172"/><rect class="s" x="200" y="120" width="10" height="14" rx="2"/>
+</svg>`,
+pills:() => `<svg class="ill" viewBox="0 0 320 190" role="img" aria-label="กล่องยาแบ่งช่องรายวัน">
+  <line class="s" x1="8" y1="150" x2="312" y2="150"/>
+  <rect class="s sf" x="34" y="92" width="224" height="50" rx="6"/>
+  ${[1,2,3,4,5,6].map(k => `<line class="s" x1="${34 + k * 32}" y1="92" x2="${34 + k * 32}" y2="142"/>`).join('')}
+  ${[0,1,2,3,4,5,6].map(k => `<circle class="soft" cx="${44 + k * 32}" cy="124" r="5"/><circle class="sagef" cx="${56 + k * 32}" cy="118" r="5"/><rect class="soft" x="${42 + k * 32}" y="104" width="14" height="6" rx="3"/>`).join('')}
+  <path class="s" d="M34 92 L44 70 H72 L66 92"/>
+  <path class="s sf" d="M272 150 V108 H298 V150 Z"/><line class="s" x1="272" y1="120" x2="298" y2="120"/>
+</svg>`
+};
+
+/* ---------------- หน้าคำเตือนก่อนเข้าเกม ---------------- */
+function warningScreen(){
+  document.getElementById('hud').hidden = true;
+  app.innerHTML = `<section class="start warnpage">
+    <p class="chapter">ก่อนเริ่ม</p>
+    <h1>เนื้อหาในเกมนี้อาจกระทบความรู้สึก</h1>
+    <div class="lede">
+      <p>เกมนี้จำลองชีวิตของผู้ป่วยมะเร็งปอดระยะแพร่กระจาย ตั้งแต่วันที่รู้ผลจนถึงวาระสุดท้าย มีฉากการรักษาในโรงพยาบาล การเจ็บป่วย และการเสียชีวิต</p>
+      <p>หากคุณหรือคนใกล้ชิดกำลังเจ็บป่วย หรือเพิ่งสูญเสียคนที่รัก เนื้อหาบางส่วนอาจทำให้นึกถึงเรื่องนั้น</p>
+    </div>
+    <ul class="care">
+      <li>หยุดเล่นได้ทุกเมื่อ</li>
+      <li>เจ้าหน้าที่ที่บูธพร้อมพูดคุยกับคุณ</li>
+      <li>ข้อมูลที่กรอกใช้ในเกมเท่านั้น ไม่ถูกบันทึก</li>
+    </ul>
+    <div class="actions"><button class="go" id="ok">ไหว ไปต่อ</button><button class="go ghost" id="notnow">ยังไม่พร้อม</button></div>
+    <p class="note" id="notnowmsg" hidden>ไม่เป็นไรเลยครับ การดูแลความรู้สึกของตัวเองสำคัญที่สุด แวะคุยกับเจ้าหน้าที่ที่บูธเรื่องการดูแลแบบประคับประคองได้ หรือกลับมาเล่นเมื่อพร้อม</p>
+  </section>`;
+  window.scrollTo({top:0});
+  document.getElementById('ok').addEventListener('click', () => { setMusic(1, true); startScreen(); });
+  document.getElementById('notnow').addEventListener('click', () => { document.getElementById('notnowmsg').hidden = false; });
+}
+
+document.getElementById('mute').addEventListener('click', toggleMute);
+drawMute();
+warningScreen();
+</script>
+
+</body>
+</html>
